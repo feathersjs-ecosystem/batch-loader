@@ -1,29 +1,29 @@
-# feathers-batchloader
+# feathers-plus/batch-loader
 
-[![Build Status](https://travis-ci.org/feathers-plus/feathers-batchLoader.png?branch=master)](https://travis-ci.org/feathers-plus/feathers-batchLoader)
-[![Code Climate](https://codeclimate.com/github/feathers-plus/feathers-batchLoader/badges/gpa.svg)](https://codeclimate.com/github/feathers-plus/feathers-batchLoader)
-[![Test Coverage](https://codeclimate.com/github/feathers-plus/feathers-batchLoader/badges/coverage.svg)](https://codeclimate.com/github/feathers-plus/feathers-batchLoader/coverage)
-[![Dependency Status](https://img.shields.io/david/feathers-plus/feathers-batchLoader.svg?style=flat-square)](https://david-dm.org/feathers-plus/feathers-batchLoader)
+[![Build Status](https://travis-ci.org/feathers-plus/batch-loader.png?branch=master)](https://travis-ci.org/feathers-plus/batch-loader)
+[![Code Climate](https://codeclimate.com/github/feathers-plus/batch-loader/badges/gpa.svg)](https://codeclimate.com/github/feathers-plus/batch-loader)
+[![Test Coverage](https://codeclimate.com/github/feathers-plus/batch-loader/badges/coverage.svg)](https://codeclimate.com/github/feathers-plus/batch-loader/coverage)
+[![Dependency Status](https://img.shields.io/david/feathers-plus/batch-loader.svg?style=flat-square)](https://david-dm.org/feathers-plus/batch-loader)
 [![Download Status](https://img.shields.io/npm/dm/feathers-batchloader.svg?style=flat-square)](https://www.npmjs.com/package/feathers-batchloader)
 
-> Reducs calls
+> Reduce requests to backend services by batching calls and caching records.
 
 ## Installation
 
 ```
-npm install feathers-batchloader --save
+npm install @feathers-plus/batch-loader --save
 ```
 
 ## Documentation
 
-Please refer to the [feathers-batchloader documentation](http://docs.feathers-plus.com/) for more details.
+Please refer to the [batch-loader documentation](http://docs.feathers-plus.org/) for more details.
 
 ## Complete Example
 
-Here's an example of a Feathers server that uses `feathers-batchloader`. 
+Here's an example of a Feathers server that uses `feathers-plus/batch-loader`. 
 
 ```js
-const BatchLoader = require('feathers-batchloader');
+const BatchLoader = require('@feathers-plus/batch-loader');
 const { getResultsByKey, getUniqueKeys } = BatchLoader;
 
 const usersBatchLoader = new BatchLoader(
@@ -32,11 +32,11 @@ const usersBatchLoader = new BatchLoader(
 );
 
 app.service('comments').find()
-  .then(comments => comments.map(comment => {
+  .then(comments => Promise.all(comments.map(comment => {
     // Attach user record
     return usersBatchLoader.load(comment.userId)
       .then(user => comment.userRecord = user);
-  }))
+  })))
 ```
 
 ## License
