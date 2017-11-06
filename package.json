@@ -1,7 +1,7 @@
 {
   "name": "@feathers-plus/batch-loader",
   "description": "Reduce requests to backend services by batching calls and caching records.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/feathers-plus/batch-loader",
   "main": "lib/",
   "keywords": [
