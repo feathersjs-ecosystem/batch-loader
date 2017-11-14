@@ -1,13 +1,6 @@
 
 const postsStore = [
   { id: 1, body: 'John post', userId: 101, starIds: [102, 103, 104] },
-    /*
-    reputation: [ // The current populate hook cannot handle this structure.
-      { userId: 102, points: 1 },
-      { userId: 103, points: 1 },
-      { userId: 104, points: 1 },
-    ]},
-     */
   { id: 2, body: 'Marshall post', userId: 102, starIds: [101, 103, 104] },
   { id: 3, body: 'Barbara post', userId: 103 },
   { id: 4, body: 'Aubree post', userId: 104 }
@@ -36,10 +29,12 @@ module.exports = {
   users: makeService(usersStore, 'users')
 };
 
-function makeService (store, name) {
+function makeService (store1, name) {
+
   return {
     get (id) {
       //console.log(`... ${name} get ${id}`);
+      const store = clone(store1);
 
       for (let i = 0, leni = store.length; i < leni; i++) {
         if (store[i].id === id) return asyncReturn(store[i]);
@@ -50,6 +45,7 @@ function makeService (store, name) {
 
     find (params) {
       //console.log(`... ${name} find`, params ? params.query : '');
+      const store = clone(store1);
 
       if (!params || !params.query) return asyncReturn(store);
 
@@ -69,4 +65,8 @@ function asyncReturn (value) {
   return new Promise(resolve => {
     setTimeout(() => { resolve(value); }, 10);
   });
+}
+
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }

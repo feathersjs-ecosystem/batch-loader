@@ -1,22 +1,38 @@
 
-const { inspect } = require('util');
+const { assert } = require('chai');
 const BatchLoader = require('../lib/index');
 const { posts, comments, users } = require('./helpers/make-services');
 
 const { getResultsByKey, getUniqueKeys } = BatchLoader;
 
+let countUsersResolver = 0;
+let countCommentsResolver = 0;
+let countUsersNoBatch;
+let countCommentsNoBatch;
+let countUsersBatch;
+let countCommentsBatch;
+
 function tester (options) {
   const commentsBatchLoader = new BatchLoader(
-    keys => comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
-      .then(result => getResultsByKey(keys, result, comment => comment.postId, '[!]')),
+    keys => {
+      countUsersResolver += 1;
+      return comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
+        .then(result => getResultsByKey(keys, result, comment => comment.postId, '[!]'))
+    },
     options
   );
 
   const usersBatchLoader = new BatchLoader(
-    keys => users.find({ query: { id: { $in: getUniqueKeys(keys) } } })
-      .then(result => getResultsByKey(keys, result, user => user.id, '!')),
+    keys => {
+      countCommentsResolver += 1;
+      return users.find({ query: { id: { $in: getUniqueKeys(keys) } } })
+        .then(result => getResultsByKey(keys, result, user => user.id, '!'))
+    },
     options
   );
+
+  countUsersResolver = 0;
+  countCommentsResolver = 0;
 
   return posts.find()
     .then(posts => {
@@ -52,22 +68,32 @@ function tester (options) {
     .catch(err => console.log(err));
 }
 
-describe('compare-neither-batch-cache', () => {
+describe('counts-no-batch-to-batch.test.js', () => {
   it('Compare BatchLoader with neither batch nor cache, to BatchLoader with both.', () => {
     return Promise.resolve()
       .then(() => {
-        console.log('\n=== Using BatchLoader with neither batching nor caching');
+        //console.log('\n=== Using BatchLoader with neither batching nor caching');
 
         return tester({ batch: false, cache: false });
       })
 
       .then(() => {
-        console.log('\n=== Using BatchLoader with batching and caching');
+        countUsersNoBatch = countUsersResolver;
+        countCommentsNoBatch = countCommentsResolver;
+        //console.log('\n=== Using BatchLoader with batching and caching');
 
         return tester();
       })
 
-      .then(posts => inspector('\n=== posts', posts));
+      .then(posts => {
+        countUsersBatch = countUsersResolver;
+        countCommentsBatch = countCommentsResolver;
+
+        assert.equal(countUsersNoBatch, 4, 'countUsersNoBatch');
+        assert.equal(countCommentsNoBatch, 13, 'countCommentsNoBatch');
+        assert.equal(countUsersBatch, 1, 'countUsersBatch');
+        assert.equal(countCommentsBatch, 1, 'countCommentsBatch');
+      });
   });
 });
 
