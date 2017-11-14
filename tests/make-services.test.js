@@ -1,4 +1,5 @@
 
+const { assert } = require('chai');
 const { users } = require('./helpers/make-services');
 
 let result1, result2, result3;
@@ -22,10 +23,19 @@ describe('make-services.test.js', () => {
         return users.find();
       })
       .then(result => {
-        console.log(result1);
-        console.log(result2);
-        console.log(result3);
-        console.log(result);
+        assert.deepEqual(result1, { id: 101, name: 'John' }, 'result1');
+        assert.deepEqual(result2, [{ id: 101, name: 'John' }], 'result1');
+        assert.deepEqual(result3, [
+          { id: 101, name: 'John' },
+          { id: 103, name: 'Barbara' },
+          { id: 104, name: 'Aubree' }
+        ], 'result1');
+        assert.deepEqual(result, [
+          { id: 101, name: 'John' },
+          { id: 102, name: 'Marshall' },
+          { id: 103, name: 'Barbara' },
+          { id: 104, name: 'Aubree' }
+        ], 'result1');
       })
       .catch(err => console.log(err));
   });

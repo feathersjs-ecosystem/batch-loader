@@ -39,7 +39,7 @@ module.exports = {
 function makeService (store, name) {
   return {
     get (id) {
-      console.log(`... ${name} get ${id}`);
+      //console.log(`... ${name} get ${id}`);
 
       for (let i = 0, leni = store.length; i < leni; i++) {
         if (store[i].id === id) return asyncReturn(store[i]);
@@ -49,7 +49,7 @@ function makeService (store, name) {
     },
 
     find (params) {
-      console.log(`... ${name} find`, params ? params.query : '');
+      //console.log(`... ${name} find`, params ? params.query : '');
 
       if (!params || !params.query) return asyncReturn(store);
 
