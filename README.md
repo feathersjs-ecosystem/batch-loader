@@ -16,7 +16,7 @@ npm install @feathers-plus/batch-loader --save
 
 ## Documentation
 
-Please refer to the [batch-loader documentation](http://docs.feathers-plus.org/) for more details.
+Please refer to the [batch-loader documentation](https://feathers-plus.github.io/v1/batch-loader/) for more details.
 
 ## Complete Example
 
