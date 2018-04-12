@@ -30,9 +30,7 @@ module.exports = {
   makeService,
 };
 
-function makeService (store1, name, options) {
-  const returnPageObject = options && options.returnPageObject;
-
+function makeService (store1, name, options={}) {
   return {
     get (id) {
       //console.log(`... ${name} get ${id}`);
@@ -60,7 +58,7 @@ function makeService (store1, name, options) {
           : value.$in.indexOf(post[field]) !== -1;
       }))
       .then((data) => {
-        if (returnPageObject) {
+        if (options.returnPageObject) {
           /**
            * Simulate the use of Pagination plugin that returns a _page object_
            * https://docs.feathersjs.com/api/databases/common.html#pagination
