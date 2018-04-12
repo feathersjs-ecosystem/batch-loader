@@ -26,10 +26,12 @@ const usersStore = [
 module.exports = {
   posts: makeService(postsStore, 'posts'),
   comments: makeService(commentsStore, 'comments'),
-  users: makeService(usersStore, 'users')
+  users: makeService(usersStore, 'users'),
+  makeService,
 };
 
-function makeService (store1, name) {
+function makeService (store1, name, options) {
+  const returnPageObject = options && options.returnPageObject;
 
   return {
     get (id) {
@@ -52,11 +54,28 @@ function makeService (store1, name) {
       const field = Object.keys(params.query)[0];
       let value = params.query[field];
 
+
       return asyncReturn(store.filter(post => {
         return typeof value !== 'object'
           ? post[field] === value
           : value.$in.indexOf(post[field]) !== -1;
-      }));
+      }))
+      .then((data) => {
+        if (returnPageObject) {
+          /**
+           * Simulate the use of Pagination plugin that returns a _page object_
+           * https://docs.feathersjs.com/api/databases/common.html#pagination
+           */
+          return {
+            total: data.length,
+            limit: 10,
+            skip: 0,
+            data: data
+          };
+        }
+
+        return data;
+      });
     }
   };
 }
