@@ -54,7 +54,6 @@ function makeService (store1, name, options) {
       const field = Object.keys(params.query)[0];
       let value = params.query[field];
 
-
       return asyncReturn(store.filter(post => {
         return typeof value !== 'object'
           ? post[field] === value

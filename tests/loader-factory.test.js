@@ -14,7 +14,7 @@ describe('loader-factory.test.js', () => {
     const context = { _loaders: { user: {} } };
     context._loaders.user.id = loaderFactory(users, 'id', false)(context);
 
-    return context._loaders.user.id.load(101)
+    return context._loaders.user.id.load(usersStore[0].id)
       .then((user) => {
         assert.deepEqual(usersStore[0], user);
       });
@@ -25,7 +25,7 @@ describe('loader-factory.test.js', () => {
     const context = { _loaders: { user: {} } };
     context._loaders.user.id = loaderFactory(users, 'id', false)(context);
 
-    return context._loaders.user.id.load(101)
+    return context._loaders.user.id.load(usersStore[0].id)
       .then((user) => {
         assert.deepEqual(usersStore[0], user);
       });
