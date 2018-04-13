@@ -47,7 +47,10 @@
   "directories": {
     "lib": "lib"
   },
-  "dependencies": {},
+  "dependencies": {
+    "a": "git://github.com:feathers-plus/feathers-hooks-common#master",
+    "feathers-hooks-common": "git://github.com/feathers-plus/feathers-hooks-common.git#master"
+  },
   "devDependencies": {
     "asyncro": "2.0.1",
     "chai": "3.5.0",
