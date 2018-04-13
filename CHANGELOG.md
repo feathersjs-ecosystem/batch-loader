@@ -1,5 +1,8 @@
 # Change Log
 
+## [v0.3.2](https://github.com/feathers-plus/batch-loader/tree/v0.3.2) (2018-04-13)
+[Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.1...v0.3.2)
+
 ## [v0.3.1](https://github.com/feathers-plus/batch-loader/tree/v0.3.1) (2018-04-13)
 [Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.0...v0.3.1)
 
