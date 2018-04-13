@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.3.1](https://github.com/feathers-plus/batch-loader/tree/v0.3.1) (2018-04-13)
+[Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.0...v0.3.1)
+
+**Fixed bugs:**
+
+- Fix README.md link to documentation page [\#2](https://github.com/feathers-plus/batch-loader/pull/2) ([leedongwei](https://github.com/leedongwei))
+
+**Merged pull requests:**
+
+- Add support for handling page object responses for services using pagination. [\#3](https://github.com/feathers-plus/batch-loader/pull/3) ([otang](https://github.com/otang))
+
 ## [v0.3.0](https://github.com/feathers-plus/batch-loader/tree/v0.3.0) (2017-11-14)
 [Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.2.1...v0.3.0)
 
