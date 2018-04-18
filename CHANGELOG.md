@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.3.3](https://github.com/feathers-plus/batch-loader/tree/v0.3.3) (2018-04-18)
+[Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.2...v0.3.3)
+
+**Merged pull requests:**
+
+- Revert old changes and apply new strategy to add pagination support. [\#4](https://github.com/feathers-plus/batch-loader/pull/4) ([otang](https://github.com/otang))
+
 ## [v0.3.2](https://github.com/feathers-plus/batch-loader/tree/v0.3.2) (2018-04-13)
 [Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.1...v0.3.2)
 
