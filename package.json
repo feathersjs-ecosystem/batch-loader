@@ -4,6 +4,7 @@
   "version": "0.3.3",
   "homepage": "https://github.com/feathers-plus/batch-loader",
   "main": "lib/",
+  "types": "types/",
   "keywords": [
     "feathers",
     "feathers-plus",
@@ -34,9 +35,10 @@
     "release:major": "npm version major && npm publish",
     "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
     "lint": "semistandard lib/*.js lib/**/*.js test/*.js test/**/*.js --fix",
+    "lint:types": "dtslint types/",
     "mocha": "mocha --opts mocha.opts",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --opts mocha.opts",
-    "test": "npm run lint && npm run coverage"
+    "test": "npm run lint && npm run lint:types && npm run coverage"
   },
   "semistandard": {
     "sourceType": "module",
@@ -48,8 +50,10 @@
     "lib": "lib"
   },
   "devDependencies": {
+    "@types/feathersjs__feathers": "^3.0.4",
     "asyncro": "2.0.1",
     "chai": "3.5.0",
+    "dtslint": "^0.3.0",
     "istanbul": "1.1.0-alpha.1",
     "mocha": "4.0.1",
     "semistandard": "11.0.0"
