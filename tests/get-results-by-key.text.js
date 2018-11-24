@@ -107,6 +107,13 @@ describe('get-results-by-key.test.js', () => {
 
       assert.deepEqual(actual, expected);
     });
+
+    it('results missing', () => {
+      const actual = getResultsByKey([2, null, 0, 98, 1, 97], collection1, ...args);
+      const expected = [result1[2], null, result1[0], null, result1[1], null];
+
+      assert.deepEqual(actual, expected);
+    });
   });
 
   describe("test '[!]'", () => {

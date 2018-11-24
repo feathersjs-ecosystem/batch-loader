@@ -91,4 +91,10 @@ describe('loader-small-populate.test.js', () => {
 
     assert.deepEqual(data, result);
   });
+
+  it('null key', async () => {
+    const returns = await commentsLoaderAwait.load(null);
+
+    assert.strictEqual(returns, null);
+  });
 });
