@@ -1,9 +1,20 @@
 # Change Log
 
+## [v0.3.4](https://github.com/feathers-plus/batch-loader/tree/v0.3.4) (2018-11-24)
+[Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.3...v0.3.4)
+
+**Closed issues:**
+
+- Creating a batchloader for belongsToMany relationships [\#6](https://github.com/feathers-plus/batch-loader/issues/6)
+
+**Merged pull requests:**
+
+- Add typings, tests and necessary infrastructure [\#5](https://github.com/feathers-plus/batch-loader/pull/5) ([j2L4e](https://github.com/j2L4e))
+
 ## [v0.3.3](https://github.com/feathers-plus/batch-loader/tree/v0.3.3) (2018-04-18)
 [Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.2...v0.3.3)
 
-**Merged pull requests:**
+**Implemented enhancements:**
 
 - Revert old changes and apply new strategy to add pagination support. [\#4](https://github.com/feathers-plus/batch-loader/pull/4) ([otang](https://github.com/otang))
 
