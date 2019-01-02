@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.3.5](https://github.com/feathers-plus/batch-loader/tree/v0.3.5) (2019-01-02)
+[Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.4...v0.3.5)
+
+**Merged pull requests:**
+
+- Fixed bug in custom version of makeCallingParams. [\#8](https://github.com/feathers-plus/batch-loader/pull/8) ([eddyystop](https://github.com/eddyystop))
+
 ## [v0.3.4](https://github.com/feathers-plus/batch-loader/tree/v0.3.4) (2018-11-24)
 [Full Changelog](https://github.com/feathers-plus/batch-loader/compare/v0.3.3...v0.3.4)
 
