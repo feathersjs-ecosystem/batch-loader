@@ -52,10 +52,11 @@
   "devDependencies": {
     "@types/feathersjs__feathers": "^3.1.7",
     "asyncro": "^3.0.0",
-    "chai": "3.5.0",
-    "dtslint": "^0.3.0",
+    "chai": "^4.3.0",
+    "dtslint": "^4.0.6",
     "istanbul": "1.1.0-alpha.1",
     "mocha": "^8.2.1",
-    "semistandard": "^16.0.0"
+    "semistandard": "^16.0.0",
+    "typescript": "^4.1.4"
   }
 }
