@@ -1,20 +1,20 @@
 {
-  "name": "@feathers-plus/batch-loader",
+  "name": "batch-loader",
   "description": "Reduce requests to backend services by batching calls and caching records.",
   "version": "0.3.6",
-  "homepage": "https://github.com/feathers-plus/batch-loader",
+  "homepage": "https://github.com/feathersjs-ecosystem/batch-loader",
   "main": "lib/",
   "types": "types/",
   "keywords": [
     "feathers",
-    "feathers-plus",
+    "feathers-ecosystem",
     "batch",
     "cache"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/feathers-plus/batch-loader.git"
+    "url": "git@github.com:feathersjs-ecosystem/batch-loader.git"
   },
   "author": {
     "name": "John J. Szwaronek",
@@ -22,7 +22,7 @@
   },
   "contributors": [],
   "bugs": {
-    "url": "https://github.com/feathers-plus/batch-loader/issues"
+    "url": "https://github.com/feathersjs-ecosystem/batch-loader/issues"
   },
   "engines": {
     "node": ">= 6.0.0"
