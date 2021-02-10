@@ -33,42 +33,42 @@ const result = [{
   userId: 102,
   starIds: [101, 103, 104],
   commentRecords:
-      [{
-        id: 14,
-        text: 'Marshall post John comment 14',
-        postId: 2,
-        userId: 101
-      },
-      {
-        id: 15,
-        text: 'Marshall post John comment 15',
-        postId: 2,
-        userId: 101
-      }]
+    [{
+      id: 14,
+      text: 'Marshall post John comment 14',
+      postId: 2,
+      userId: 101
+    },
+    {
+      id: 15,
+      text: 'Marshall post John comment 15',
+      postId: 2,
+      userId: 101
+    }]
 },
 {
   id: 3,
   body: 'Barbara post',
   userId: 103,
   commentRecords:
-      [{
-        id: 16,
-        text: 'Barbara post John comment 16',
-        postId: 3,
-        userId: 101
-      }]
+    [{
+      id: 16,
+      text: 'Barbara post John comment 16',
+      postId: 3,
+      userId: 101
+    }]
 },
 {
   id: 4,
   body: 'Aubree post',
   userId: 104,
   commentRecords:
-      [{
-        id: 17,
-        text: 'Aubree post Marshall comment 17',
-        postId: 4,
-        userId: 102
-      }]
+    [{
+      id: 17,
+      text: 'Aubree post Marshall comment 17',
+      postId: 4,
+      userId: 102
+    }]
 }];
 
 describe('loader-no-loader.test.js', () => {

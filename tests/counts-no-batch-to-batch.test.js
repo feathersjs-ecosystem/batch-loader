@@ -12,7 +12,7 @@ let countCommentsNoBatch;
 let countUsersBatch;
 let countCommentsBatch;
 
-function tester(options) {
+function tester (options) {
   const commentsBatchLoader = new BatchLoader(
     keys => {
       countUsersResolver += 1;

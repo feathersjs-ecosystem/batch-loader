@@ -140,11 +140,14 @@ Reorganizes the records from the service call into the result expected from the 
 | `type`             |           `String`            |         | The type of value the batch loader must return for each key.                                                  |
 | `options`          |           `Object`            |         | Options.                                                                                                      |
 
-| `type` |                      Value                       | Description |
-| ------ | :----------------------------------------------: | ----------- |
-| `''`   |            An optional single record.            |
-| `'!'`  |            A required single record.             |
-| `'[]'` | A required array including 0, 1 or more records. |
+| `type`   |                      Value                       | Description |
+| -------- | :----------------------------------------------: | ----------- |
+| `''`     |            An optional single record.            |
+| `'!'`    |            A required single record.             |
+| `'[]'`   | A required array including 0, 1 or more records. |
+| `'[]!'`  |                 Alias of `'[]'`                  |
+| `'[!]'`  |  A required array including 1 or more records.   |
+| `'[!]!'` |                 Alias of `'[!]'`                 |
 
 | `options`     | Argument      |       Type       | Default                                                                                        | Description |
 | ------------- | ------------- | :--------------: | ---------------------------------------------------------------------------------------------- | ----------- |
