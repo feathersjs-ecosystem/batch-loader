@@ -50,8 +50,8 @@
     "lib": "lib"
   },
   "devDependencies": {
-    "@types/feathersjs__feathers": "^3.0.4",
-    "asyncro": "2.0.1",
+    "@types/feathersjs__feathers": "^3.1.7",
+    "asyncro": "^3.0.0",
     "chai": "3.5.0",
     "dtslint": "^0.3.0",
     "istanbul": "1.1.0-alpha.1",
