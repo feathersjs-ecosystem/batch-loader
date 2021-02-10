@@ -25,7 +25,7 @@ function tester (fn) {
 }
 
 function commentsBatchLoaderResolver (keys) {
-  //console.log('... comments batchLoader resolver', keys);
+  // console.log('... comments batchLoader resolver', keys);
   countResolver += 1;
 
   return comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
@@ -36,7 +36,7 @@ describe('counts-js-to-batchloader.test.js', () => {
   it('Compare JS to BatchLoader with and without batch and cache.', () => {
     return Promise.resolve()
       .then(() => {
-        //console.log('\n=== Normal JavaScript');
+        // console.log('\n=== Normal JavaScript');
         return tester(key => {
           countJS += 1;
           return comments.find({ query: { postId: key } });
@@ -44,7 +44,7 @@ describe('counts-js-to-batchloader.test.js', () => {
       })
 
       .then(() => {
-        //console.log('\n=== Using BatchLoader with neither batching mor caching');
+        // console.log('\n=== Using BatchLoader with neither batching mor caching');
 
         const commentsBatchLoader1 = new BatchLoader(
           commentsBatchLoaderResolver, { batch: false, cache: false }
@@ -56,7 +56,7 @@ describe('counts-js-to-batchloader.test.js', () => {
 
       .then(() => {
         countNoBatch = countResolver;
-        //console.log('\n=== Using BatchLoader with batching and caching');
+        // console.log('\n=== Using BatchLoader with batching and caching');
 
         const commentsBatchLoader2 = new BatchLoader(
           commentsBatchLoaderResolver

@@ -12,12 +12,12 @@ let countCommentsNoBatch;
 let countUsersBatch;
 let countCommentsBatch;
 
-function tester (options) {
+function tester(options) {
   const commentsBatchLoader = new BatchLoader(
     keys => {
       countUsersResolver += 1;
       return comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
-        .then(result => getResultsByKey(keys, result, comment => comment.postId, '[!]'))
+        .then(result => getResultsByKey(keys, result, comment => comment.postId, '[!]'));
     },
     options
   );
@@ -26,7 +26,7 @@ function tester (options) {
     keys => {
       countCommentsResolver += 1;
       return users.find({ query: { id: { $in: getUniqueKeys(keys) } } })
-        .then(result => getResultsByKey(keys, result, user => user.id, '!'))
+        .then(result => getResultsByKey(keys, result, user => user.id, '!'));
     },
     options
   );
@@ -72,7 +72,7 @@ describe('counts-no-batch-to-batch.test.js', () => {
   it('Compare BatchLoader with neither batch nor cache, to BatchLoader with both.', () => {
     return Promise.resolve()
       .then(() => {
-        //console.log('\n=== Using BatchLoader with neither batching nor caching');
+        // console.log('\n=== Using BatchLoader with neither batching nor caching');
 
         return tester({ batch: false, cache: false });
       })
@@ -80,7 +80,7 @@ describe('counts-no-batch-to-batch.test.js', () => {
       .then(() => {
         countUsersNoBatch = countUsersResolver;
         countCommentsNoBatch = countCommentsResolver;
-        //console.log('\n=== Using BatchLoader with batching and caching');
+        // console.log('\n=== Using BatchLoader with batching and caching');
 
         return tester();
       })
@@ -96,8 +96,3 @@ describe('counts-no-batch-to-batch.test.js', () => {
       });
   });
 });
-
-function inspector (desc, obj, depth = 5) {
-  console.log(desc);
-  console.log(inspect(obj, { depth, colors: true }));
-}

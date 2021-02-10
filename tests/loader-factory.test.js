@@ -4,7 +4,6 @@ const { users } = require('./helpers/make-services');
 const { loaderFactory } = require('../lib');
 
 describe('loader-factory.test.js', () => {
-
   it('can load an entity', () => {
     const context = { _loaders: { user: {} } };
     context._loaders.user.id = loaderFactory(users, 'id', false)(context);
@@ -14,5 +13,4 @@ describe('loader-factory.test.js', () => {
         assert.deepEqual({ id: 101, name: 'John' }, user);
       });
   });
-
 });

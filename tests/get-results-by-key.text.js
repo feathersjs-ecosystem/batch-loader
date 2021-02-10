@@ -5,9 +5,9 @@ const BatchLoader = require('../lib');
 const resultsObj = [0, 1, 2].map(id => ({ id, value: id }));
 const collection1 = [0, 1, 2, 1].map(id => ({ id, value: id }));
 const result1 = [
-  [ { id: 0, value: 0 } ],
-  [ { id: 1, value: 1 }, { id: 1, value: 1 } ],
-  [ { id: 2, value: 2 } ]
+  [{ id: 0, value: 0 }],
+  [{ id: 1, value: 1 }, { id: 1, value: 1 }],
+  [{ id: 2, value: 2 }]
 ];
 
 let getResultsByKey;
