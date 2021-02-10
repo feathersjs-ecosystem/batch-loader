@@ -1,5 +1,5 @@
 {
-  "name": "batch-loader",
+  "name": "@feathers-plus/batch-loader",
   "description": "Reduce requests to backend services by batching calls and caching records.",
   "version": "0.3.6",
   "homepage": "https://github.com/feathersjs-ecosystem/batch-loader",
