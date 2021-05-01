@@ -14,59 +14,81 @@ const commentsLoaderPromises = new BatchLoader(
 );
 
 const commentsLoaderAwait = new BatchLoader(async keys => {
-    const postRecords = await comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } });
-    return getResultsByKey(keys, postRecords, comment => comment.postId, '[]');
-  },
-  options
+  const postRecords = await comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } });
+  return getResultsByKey(keys, postRecords, comment => comment.postId, '[]');
+},
+options
 );
 
 const result = [
-  { id: 1,
+  {
+    id: 1,
     body: 'John post',
     userId: 101,
-    starIds: [ 102, 103, 104 ],
+    starIds: [102, 103, 104],
     commentRecords:
-      [ { id: 11,
+      [{
+        id: 11,
         text: 'John post Marshall comment 11',
         postId: 1,
-        userId: 102 },
-        { id: 12,
-          text: 'John post Marshall comment 12',
-          postId: 1,
-          userId: 102 },
-        { id: 13,
-          text: 'John post Marshall comment 13',
-          postId: 1,
-          userId: 102 } ] },
-  { id: 2,
+        userId: 102
+      },
+      {
+        id: 12,
+        text: 'John post Marshall comment 12',
+        postId: 1,
+        userId: 102
+      },
+      {
+        id: 13,
+        text: 'John post Marshall comment 13',
+        postId: 1,
+        userId: 102
+      }]
+  },
+  {
+    id: 2,
     body: 'Marshall post',
     userId: 102,
-    starIds: [ 101, 103, 104 ],
+    starIds: [101, 103, 104],
     commentRecords:
-      [ { id: 14,
+      [{
+        id: 14,
         text: 'Marshall post John comment 14',
         postId: 2,
-        userId: 101 },
-        { id: 15,
-          text: 'Marshall post John comment 15',
-          postId: 2,
-          userId: 101 } ] },
-  { id: 3,
+        userId: 101
+      },
+      {
+        id: 15,
+        text: 'Marshall post John comment 15',
+        postId: 2,
+        userId: 101
+      }]
+  },
+  {
+    id: 3,
     body: 'Barbara post',
     userId: 103,
     commentRecords:
-      [ { id: 16,
+      [{
+        id: 16,
         text: 'Barbara post John comment 16',
         postId: 3,
-        userId: 101 } ] },
-  { id: 4,
+        userId: 101
+      }]
+  },
+  {
+    id: 4,
     body: 'Aubree post',
     userId: 104,
     commentRecords:
-      [ { id: 17,
+      [{
+        id: 17,
         text: 'Aubree post Marshall comment 17',
         postId: 4,
-        userId: 102 } ] } ];
+        userId: 102
+      }]
+  }];
 
 describe('loader-small-populate.test.js', () => {
   it('using Promises', () => {

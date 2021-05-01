@@ -2,19 +2,19 @@
   "name": "@feathers-plus/batch-loader",
   "description": "Reduce requests to backend services by batching calls and caching records.",
   "version": "0.3.6",
-  "homepage": "https://github.com/feathers-plus/batch-loader",
+  "homepage": "https://github.com/feathersjs-ecosystem/batch-loader",
   "main": "lib/",
   "types": "types/",
   "keywords": [
     "feathers",
-    "feathers-plus",
+    "feathers-ecosystem",
     "batch",
     "cache"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/feathers-plus/batch-loader.git"
+    "url": "git@github.com:feathersjs-ecosystem/batch-loader.git"
   },
   "author": {
     "name": "John J. Szwaronek",
@@ -22,7 +22,7 @@
   },
   "contributors": [],
   "bugs": {
-    "url": "https://github.com/feathers-plus/batch-loader/issues"
+    "url": "https://github.com/feathersjs-ecosystem/batch-loader/issues"
   },
   "engines": {
     "node": ">= 6.0.0"
@@ -34,10 +34,10 @@
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
     "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
-    "lint": "semistandard lib/*.js lib/**/*.js test/*.js test/**/*.js --fix",
+    "lint": "semistandard lib/*.js lib/**/*.js tests/*.js tests/**/*.js --fix",
     "lint:types": "dtslint types/",
-    "mocha": "mocha --opts mocha.opts",
-    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --opts mocha.opts",
+    "mocha": "mocha --recursive tests/",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --recursive tests/",
     "test": "npm run lint && npm run lint:types && npm run coverage"
   },
   "semistandard": {
@@ -50,12 +50,13 @@
     "lib": "lib"
   },
   "devDependencies": {
-    "@types/feathersjs__feathers": "^3.0.4",
-    "asyncro": "2.0.1",
-    "chai": "3.5.0",
-    "dtslint": "^0.3.0",
+    "@types/feathersjs__feathers": "^3.1.7",
+    "asyncro": "^3.0.0",
+    "chai": "^4.3.0",
+    "dtslint": "^4.0.6",
     "istanbul": "1.1.0-alpha.1",
-    "mocha": "4.0.1",
-    "semistandard": "11.0.0"
+    "mocha": "^8.2.1",
+    "semistandard": "^16.0.0",
+    "typescript": "^4.1.4"
   }
 }

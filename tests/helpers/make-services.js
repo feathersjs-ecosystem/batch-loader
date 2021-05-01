@@ -30,10 +30,9 @@ module.exports = {
 };
 
 function makeService (store1, name) {
-
   return {
     get (id) {
-      //console.log(`... ${name} get ${id}`);
+      // console.log(`... ${name} get ${id}`);
       const store = clone(store1);
 
       for (let i = 0, leni = store.length; i < leni; i++) {
@@ -44,13 +43,13 @@ function makeService (store1, name) {
     },
 
     find (params) {
-      //console.log(`... ${name} find`, params ? params.query : '');
+      // console.log(`... ${name} find`, params ? params.query : '');
       const store = clone(store1);
 
       if (!params || !params.query) return asyncReturn(store);
 
       const field = Object.keys(params.query)[0];
-      let value = params.query[field];
+      const value = params.query[field];
 
       return asyncReturn(store.filter(post => {
         return typeof value !== 'object'
@@ -67,6 +66,6 @@ function asyncReturn (value) {
   });
 }
 
-function clone(obj) {
+function clone (obj) {
   return JSON.parse(JSON.stringify(obj));
 }
