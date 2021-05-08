@@ -1,7 +1,7 @@
 
 const { assert } = require('chai');
 const { map, parallel } = require('asyncro');
-const BatchLoader = require('../lib');
+const BatchLoader = require('../lib/batchLoader');
 const { posts, comments, users } = require('./helpers/make-services');
 
 const { getResultsByKey, getUniqueKeys } = BatchLoader;

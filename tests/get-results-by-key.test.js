@@ -1,6 +1,6 @@
 
 const { assert } = require('chai');
-const BatchLoader = require('../lib');
+const BatchLoader = require('../lib/batchLoader');
 
 const resultsObj = [0, 1, 2].map(id => ({ id, value: id }));
 const collection1 = [0, 1, 2, 1].map(id => ({ id, value: id }));

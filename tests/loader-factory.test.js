@@ -1,7 +1,7 @@
 
 const { assert } = require('chai');
 const { users } = require('./helpers/make-services');
-const { loaderFactory } = require('../lib');
+const { loaderFactory } = require('../lib/batchLoader');
 
 describe('loader-factory.test.js', () => {
   it('can load an entity', () => {

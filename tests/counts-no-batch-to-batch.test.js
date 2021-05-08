@@ -1,6 +1,6 @@
 
 const { assert } = require('chai');
-const BatchLoader = require('../lib/index');
+const BatchLoader = require('../lib/batchLoader');
 const { posts, comments, users } = require('./helpers/make-services');
 
 const { getResultsByKey, getUniqueKeys } = BatchLoader;
