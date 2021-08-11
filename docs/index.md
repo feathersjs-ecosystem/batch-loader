@@ -228,7 +228,7 @@ Loads multiple keys, promising a arrays of values.
 <!--- clear --------------------------------------------------------------------------------------->
 <h2 id="clear">batchLoader.clear( key )</h2>
 
-Clears the value at key from the cache, if it exists.
+Clears the value at key from the cache, if it exists. Clears the whole cache if no key is provided.
 
 - **Arguments:**
   - `{String | Number | Object | Array} key`
@@ -239,16 +239,7 @@ Clears the value at key from the cache, if it exists.
 
 - **Details**
 
-The key is matches using strict equality. This is particularly important for `Object` and `Array` keys.
-
-<!--- clearAll ------------------------------------------------------------------------------------>
-<h2 id="clearall">batchLoader.clearAll()</h2>
-
-Clears the entire cache.
-
-- **Details**
-
-  To be used when some event results in unknown invalidations across this particular batch-loader.
+The key is matched using strict equality. This is particularly important for `Object` and `Array` keys.
 
 <!--- prime --------------------------------------------------------------------------------------->
 <h2 id="prime">batchLoader.prime( key, value )</h2>

@@ -91,17 +91,12 @@ declare class BatchLoader<K, V, C> {
   loadMany(keys: K[]): Promise<V[]>;
 
   /**
-   * Clears the value at `key` from the cache, if it exists. Returns itself for
-   * method chaining.
+   * Clears the value at `key` from the cache, if it exists.
+   * Clears the entire cache if no key provide. To be used when some event
+   * results in unknown invalidations across this particular `BatchLoader`.
+   * Returns itself for method chaining.
    */
-  clear(key: K): BatchLoader<K, V, C>;
-
-  /**
-   * Clears the entire cache. To be used when some event results in unknown
-   * invalidations across this particular `BatchLoader`. Returns itself for
-   * method chaining.
-   */
-  clearAll(): BatchLoader<K, V, C>;
+  clear(key?: K): BatchLoader<K, V, C>;
 
   /**
    * Adds the provied key and value to the cache. If the key already exists, no
