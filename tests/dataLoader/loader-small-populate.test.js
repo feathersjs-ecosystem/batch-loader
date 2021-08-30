@@ -1,19 +1,19 @@
 
 const { assert } = require('chai');
-const BatchLoader = require('../lib/batchLoader');
-const { posts, comments } = require('./helpers/make-services');
+const { DataLoader } = require('../../lib');
+const { posts, comments } = require('../helpers');
 
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 const options = {}; // { batch: false, cache: false }
 
-const commentsLoaderPromises = new BatchLoader(
+const commentsLoaderPromises = new DataLoader(
   keys => comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
     .then(result => getResultsByKey(keys, result, comment => comment.postId, '[]')),
   options
 );
 
-const commentsLoaderAwait = new BatchLoader(async keys => {
+const commentsLoaderAwait = new DataLoader(async keys => {
   const postRecords = await comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } });
   return getResultsByKey(keys, postRecords, comment => comment.postId, '[]');
 },

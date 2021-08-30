@@ -1,9 +1,9 @@
 
 const { assert } = require('chai');
-const BatchLoader = require('../lib/batchLoader');
-const { posts, comments } = require('../tests/helpers/make-services');
+const { DataLoader } = require('../../lib');
+const { posts, comments } = require('../helpers');
 
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 let countJS = 0;
 let countResolver = 0;
@@ -46,7 +46,7 @@ describe('counts-js-to-batchloader.test.js', () => {
       .then(() => {
         // console.log('\n=== Using BatchLoader with neither batching mor caching');
 
-        const commentsBatchLoader1 = new BatchLoader(
+        const commentsBatchLoader1 = new DataLoader(
           commentsBatchLoaderResolver, { batch: false, cache: false }
         );
 
@@ -58,7 +58,7 @@ describe('counts-js-to-batchloader.test.js', () => {
         countNoBatch = countResolver;
         // console.log('\n=== Using BatchLoader with batching and caching');
 
-        const commentsBatchLoader2 = new BatchLoader(
+        const commentsBatchLoader2 = new DataLoader(
           commentsBatchLoaderResolver
         );
 

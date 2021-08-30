@@ -1,6 +1,7 @@
 
 const { assert } = require('chai');
-const { getUniqueKeys } = require('../lib/batchLoader');
+const { DataLoader } = require('../../lib');
+const getUniqueKeys = DataLoader.getUniqueKeys;
 
 describe('get-unique-keys.test.js', () => {
   it('handles 0 element array', () => {

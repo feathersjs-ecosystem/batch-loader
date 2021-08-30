@@ -1,9 +1,9 @@
 
 const { assert } = require('chai');
-const BatchLoader = require('../lib/batchLoader');
-const { posts, comments, users } = require('./helpers/make-services');
+const { DataLoader } = require('../../lib');
+const { posts, comments, users } = require('../helpers');
 
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 let countUsersResolver = 0;
 let countCommentsResolver = 0;
@@ -13,7 +13,7 @@ let countUsersBatch;
 let countCommentsBatch;
 
 function tester (options) {
-  const commentsBatchLoader = new BatchLoader(
+  const commentsBatchLoader = new DataLoader(
     keys => {
       countUsersResolver += 1;
       return comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
@@ -22,7 +22,7 @@ function tester (options) {
     options
   );
 
-  const usersBatchLoader = new BatchLoader(
+  const usersBatchLoader = new DataLoader(
     keys => {
       countCommentsResolver += 1;
       return users.find({ query: { id: { $in: getUniqueKeys(keys) } } })

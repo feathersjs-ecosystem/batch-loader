@@ -1,6 +1,6 @@
 
 const { assert } = require('chai');
-const { posts, comments } = require('./helpers/make-services');
+const { posts, comments } = require('../helpers');
 
 const result = [{
   id: 1,

@@ -1,6 +1,6 @@
 
 const { assert } = require('chai');
-const BatchLoader = require('../lib/batchLoader');
+const { DataLoader } = require('../../lib');
 
 const resultsObj = [0, 1, 2].map(id => ({ id, value: id }));
 const collection1 = [0, 1, 2, 1].map(id => ({ id, value: id }));
@@ -21,7 +21,7 @@ const onError = (index, detail) => {
 
 describe('get-results-by-key.test.js', () => {
   beforeEach(() => {
-    getResultsByKey = BatchLoader.getResultsByKey;
+    getResultsByKey = DataLoader.getResultsByKey;
     onErrorCalled = false;
   });
 

@@ -1,15 +1,18 @@
-import BatchLoader = require('@feathers-plus/batch-loader');
-import { Application, Service } from '@feathersjs/feathers';
+import BatchLoader = require("@feathers-plus/batch-loader");
+import { Application, Service } from "@feathersjs/feathers";
 
 const app: Application = null as any;
 
-const myContext = { hello: 'world' };
+const myContext = { hello: "world" };
 
-new BatchLoader((keys, context) => {
+new BatchLoader(
+  (keys, context) => {
     // $ExpectType { hello: string; }
     context;
-    return app.service('users').find({ query: { id: { $in: keys } } })
-      .then(records => {
+    return app
+      .service("users")
+      .find({ query: { id: { $in: keys } } })
+      .then((records) => {
         return [];
       });
   },
@@ -17,4 +20,4 @@ new BatchLoader((keys, context) => {
 );
 
 // $ExpectType BatchLoader<any, any, { hello: string; }>
-BatchLoader.loaderFactory(app.service('users'), 'id')(myContext);
+BatchLoader.loaderFactory(app.service("users"), "id")(myContext);

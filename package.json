@@ -50,10 +50,12 @@
     "lib": "lib"
   },
   "devDependencies": {
+    "@feathersjs/feathers": "^4.5.11",
     "@types/feathersjs__feathers": "^3.1.7",
     "asyncro": "^3.0.0",
     "chai": "^4.3.0",
     "dtslint": "^4.0.6",
+    "feathers-memory": "^4.1.0",
     "istanbul": "1.1.0-alpha.1",
     "mocha": "^8.2.1",
     "semistandard": "^16.0.0",

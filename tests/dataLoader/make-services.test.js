@@ -1,6 +1,6 @@
 
 const { assert } = require('chai');
-const { users } = require('./helpers/make-services');
+const { users } = require('../helpers');
 
 let result1, result2, result3;
 

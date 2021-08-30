@@ -1,10 +1,10 @@
 
 const { assert } = require('chai');
 const { map, parallel } = require('asyncro');
-const BatchLoader = require('../lib/batchLoader');
-const { posts, comments, users } = require('./helpers/make-services');
+const { DataLoader } = require('../../lib');
+const { posts, comments, users } = require('../helpers');
 
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 const result = [
   {
@@ -109,14 +109,14 @@ describe('loader-large-populate.js', () => {
 });
 
 async function tester (options) {
-  const commentsBatchLoader = new BatchLoader(async keys => {
+  const commentsBatchLoader = new DataLoader(async keys => {
     const result = await comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } });
     return getResultsByKey(keys, result, comment => comment.postId, '[]');
   },
   options
   );
 
-  const usersBatchLoader = new BatchLoader(async keys => {
+  const usersBatchLoader = new DataLoader(async keys => {
     const result = await users.find({ query: { id: { $in: getUniqueKeys(keys) } } });
     return getResultsByKey(keys, result, user => user.id, '');
   },

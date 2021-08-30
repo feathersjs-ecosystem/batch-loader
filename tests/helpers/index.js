@@ -1,4 +1,7 @@
 
+const feathers = require('@feathersjs/feathers');
+const memory = require('feathers-memory');
+
 const postsStore = [
   { id: 1, body: 'John post', userId: 101, starIds: [102, 103, 104] },
   { id: 2, body: 'Marshall post', userId: 102, starIds: [101, 103, 104] },
@@ -26,8 +29,17 @@ const usersStore = [
 module.exports = {
   posts: makeService(postsStore, 'posts'),
   comments: makeService(commentsStore, 'comments'),
-  users: makeService(usersStore, 'users')
+  users: makeService(usersStore, 'users'),
+  makeApp
 };
+
+function makeApp () {
+  const app = feathers();
+  app.use('posts', memory({ store: postsStore }));
+  app.use('comments', memory({ store: commentsStore }));
+  app.use('users', memory({ store: usersStore }));
+  return app;
+}
 
 function makeService (store1, name) {
   return {

@@ -1,6 +1,6 @@
 
 const { assert } = require('chai');
-const { users } = require('./helpers/make-services');
+const { users } = require('../helpers');
 
 describe('make-services-await.test.js', () => {
   it('run service calls', async () => {
