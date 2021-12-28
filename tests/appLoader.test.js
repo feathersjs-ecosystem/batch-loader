@@ -13,10 +13,10 @@ describe('appLoader.test', () => {
     assert.isFunction(appLoader.clear);
   });
 
-  it('takes a cache option', () => {
-    const cache = new Map([['posts', null]]);
-    const appLoader = new AppLoader({ app, cache });
-    assert.deepEqual(appLoader._options.cache.get('posts'), null);
+  it('takes a cacheMap option', () => {
+    const cacheMap = new Map([['posts', null]]);
+    const appLoader = new AppLoader({ app, cacheMap });
+    assert.deepEqual(appLoader._options.cacheMap.get('posts'), null);
   });
 
   it('returns a new ServiceLoader', () => {
@@ -57,7 +57,7 @@ describe('appLoader.test', () => {
     appLoader.service('posts');
     appLoader.service('comments');
     appLoader.clear('posts');
-    assert.deepEqual(appLoader._options.cache.size, 1);
+    assert.deepEqual(appLoader._options.cacheMap.size, 1);
   });
 
   it('clears all', () => {
@@ -65,6 +65,6 @@ describe('appLoader.test', () => {
     appLoader.service('posts');
     appLoader.service('comments');
     appLoader.clear();
-    assert.deepEqual(appLoader._options.cache.size, 0);
+    assert.deepEqual(appLoader._options.cacheMap.size, 0);
   });
 });
