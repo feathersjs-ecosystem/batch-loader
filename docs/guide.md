@@ -24,8 +24,8 @@ The latter sends only one query to database and retrieves the same 5 records as 
 Batch-loader is a tool to help you batch database calls in such a way. First, create a batch-loader by providing a batch loading function which accepts an array of keys and an optional context. It returns a Promise which resolves to an array of values.
 
 ```js
-const BatchLoader = require('@feathers-plus/batch-loader');
-const usersLoader = new BatchLoader((keys, context) => {
+const { DataLoader } = require('@feathers-plus/batch-loader');
+const usersLoader = new DataLoader((keys, context) => {
   return app.service('users').find({ query: { id: { $in: keys } } })
     .then(records => {
       recordsByKey = /* recordsByKey[i] is the value for key[i] */;
@@ -63,7 +63,7 @@ For example, if the `usersLoader` from above is called with `[1, 2, 3, 4, 99]`, 
   { id: 3, name: 'Barbara' } ]
 ```
 
-Please not that the order of the results will usually differ from the order of the keys and here, in addition, there is no `users` with an `id` of `99`.
+Please note that the order of the results will usually differ from the order of the keys and here, in addition, there are no `users` with an `id` of `99`.
 
 The batch function has to to reorganize the above results and return:
 
@@ -84,10 +84,10 @@ The `null` indicating there is no record for `user.id === 99`.
 Batch-loader provides two convenience functions that will perform this reorganization for you.
 
 ```js
-const BatchLoader = require('@feathers-plus/batch-loader');
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { DataLoader } = require('@feathers-plus/batch-loader');
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
-const usersLoader = new BatchLoader(keys =>
+const usersLoader = new DataLoader(keys =>
   app.service('users').find({ query: { id: { $in: getUniqueKeys(keys) } } })
     .then(records => getResultsByKey(keys, records, user => user.id, ''));
 );
@@ -130,10 +130,10 @@ There are two concerns though. First the cache could keep filling up with record
 **@feathers-plus/cache** is a least-recently-used (LRU) cache which you can inject when initializing the batch-loader. You can specify the maximum number of records to be kept in the cache, and it will retain the least recently used records.
 
 ```js
-const BatchLoader = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('@feathers-plus/batch-loader');
 const cache = require('@feathers-plus/cache');
 
-const usersLoader = new BatchLoader(
+const usersLoader = new DataLoader(
   keys => { ... },
   { cacheMap: cache({ max: 100 })
 );
@@ -236,11 +236,11 @@ Both of these make the following database service calls, and both get the follow
 The batch-loader function will be called for every `load` and `loadMany` when batching and caching are disabled in the batch-loader. This means it acts just like individual `get` and `find` method calls. Let's rewrite the above example using such a rudimentary batch-loader:
 
 ```js
-const BatchLoader = require('@feathers-plus/batch-loader');
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { DataLoader } = require('@feathers-plus/batch-loader');
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 // Populate using Promises.
-const commentsLoaderPromises = new BatchLoader(
+const commentsLoaderPromises = new DataLoader(
   keys => comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } })
     .then(result => getResultsByKey(keys, result, comment => comment.postId, '[]')),
   { batch: false, cache: false }
@@ -257,7 +257,7 @@ Promise.resolve(posts.find()
   .then(data => { ... });
 
 // Populate using async/await.
-const commentsLoaderAwait = new BatchLoader(async keys => {
+const commentsLoaderAwait = new DataLoader(async keys => {
     const postRecords = await comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } });
     return getResultsByKey(keys, postRecords, comment => comment.postId, '[]');
   },
@@ -300,22 +300,22 @@ The more service calls made, the better batch-loader performs. The above example
 
 ```js
 const { map, parallel } = require('asyncro');
-const BatchLoader = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('@feathers-plus/batch-loader');
 
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 tester({ batch: false, cache: false })
   .then(data => { ... )
 
 async function tester (options) {
-  const commentsLoader = new BatchLoader(async keys => {
+  const commentsLoader = new DataLoader(async keys => {
       const result = await comments.find({ query: { postId: { $in: getUniqueKeys(keys) } } });
       return getResultsByKey(keys, result, comment => comment.postId, '[]');
     },
     options
   );
 
-  const usersLoader = new BatchLoader(async keys => {
+  const usersLoader = new DataLoader(async keys => {
       const result = await users.find({ query: { id: { $in: getUniqueKeys(keys) } } });
       return getResultsByKey(keys, result, user => user.id, '');
     },

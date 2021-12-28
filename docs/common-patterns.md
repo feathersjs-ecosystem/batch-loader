@@ -1,22 +1,38 @@
-## Creating a new batch-loader per Request.
+## Creating a new loader per Request.
 
-In many applications, a server using batch-loader serves requests to many different users with different access permissions. It may be dangerous to use one cache across many users, and it is encouraged to create a new batch-loader per request:
+In many applications, a server using loader serves requests to many different users with different access permissions. It may be dangerous to use one cache across many users, and it is encouraged to create a new loader per request. But, it is also encouraged to pass this loader to all service calls within that same request.
 
 ```js
-function createLoaders(authToken) {
-  return {
-    users: new BatchLoader((ids) => genUsers(authToken, ids)),
-    cdnUrls: new BatchLoader((rawUrls) => genCdnUrls(authToken, rawUrls)),
-    stories: new BatchLoader((keys) => genStories(authToken, keys)),
-  };
+const { AppLoader } = require('@feathers-plus/batch-loader');
+
+const initializeLoader = context => {
+  if (context.params.loader) {
+    // Allow the user to pass in a loader. This is good practice to share
+    // loaders across many service calls.
+    return context;
+  }
+
+  context.params.loader = new AppLoader({ app: context.app });
+  return context;
 }
 
-// When handling an incoming request:
-var loaders = createLoaders(request.query.authToken);
+// Use this generic hook to ensure that a loader is always configured
+// in your hooks. You can now access context.params.loader in any hook.
+app.hooks({
+  before: {
+    all: [initializeLoader]
+  }
+})
 
-// Then, within application logic:
-var user = await loaders.users.load(4);
-var pic = await loaders.cdnUrls.load(user.rawPicUrl);
+// Pass the loader to any and all service calls. This maximizes performance
+// by allowing the loader to re-use its cache and batching mechanism
+// as much as possible.
+const withResults = withResults({
+  user: ({ user_id }, context) => {
+    const { loader } = context.params;
+    return loader.service('users').load(user_id, { loader });
+  }
+});
 ```
 
 ## Loading by alternative keys.
@@ -24,7 +40,7 @@ var pic = await loaders.cdnUrls.load(user.rawPicUrl);
 Occasionally, some kind of value can be accessed in multiple ways. For example, perhaps a "User" type can be loaded not only by an "id" but also by a "username" value. If the same user is loaded by both keys, then it may be useful to fill both caches when a user is loaded from either source:
 
 ```js
-let userByIDLoader = new BatchLoader((ids) =>
+let userByIDLoader = new DataLoader((ids) =>
   genUsersByID(ids).then((users) => {
     for (let user of users) {
       usernameLoader.prime(user.username, user);
@@ -33,7 +49,7 @@ let userByIDLoader = new BatchLoader((ids) =>
   })
 );
 
-let usernameLoader = new BatchLoader((names) =>
+let usernameLoader = new DataLoader((names) =>
   genUsernames(names).then((users) => {
     for (let user of users) {
       userByIDLoader.prime(user.id, user);
@@ -48,10 +64,10 @@ let usernameLoader = new BatchLoader((names) =>
 By default, batch-loader uses the standard Map which simply grows until the batch-loader is released. A custom cache is provided as a convenience if you want to persist caches for longer periods of time. It implements a **least-recently-used** algorithm and allows you to limit the number of records cached.
 
 ```js
-const BatchLoader = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('@feathers-plus/batch-loader');
 const cache = require('@feathers-plus/cache');
 
-const usersLoader = new BatchLoader(
+const usersLoader = new DataLoader(
   keys => { ... },
   { cacheMap: cache({ max: 100 })
 );
@@ -68,12 +84,12 @@ batch-loader provides a simplified and consistent API over various data sources,
 Redis is a very simple key-value store which provides the batch load method MGET which makes it very well suited for use with batch-loader.
 
 ```js
-const BatchLoader = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("@feathers-plus/batch-loader");
 const redis = require("redis");
 
 const client = redis.createClient();
 
-const redisLoader = new BatchLoader(
+const redisLoader = new DataLoader(
   (keys) =>
     new Promise((resolve, reject) => {
       client.mget(keys, (error, results) => {
@@ -96,13 +112,13 @@ While not a key-value store, SQL offers a natural batch mechanism with SELECT \*
 This example uses the sqlite3 client which offers a parallelize method to further batch queries together. Another non-caching batch-loader utilizes this method to provide a similar API. batch-loaders can access other batch-loaders.
 
 ```js
-const BatchLoader = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("@feathers-plus/batch-loader");
 const sqlite3 = require("sqlite3");
 
 const db = new sqlite3.Database("./to/your/db.sql");
 
 // Dispatch a WHERE-IN query, ensuring response has rows in correct order.
-const userLoader = new BatchLoader((ids) => {
+const userLoader = new DataLoader((ids) => {
   const params = ids.map((id) => "?").join();
   const query = `SELECT * FROM users WHERE id IN (${params})`;
   return queryLoader
@@ -116,7 +132,7 @@ const userLoader = new BatchLoader((ids) => {
 });
 
 // Parallelize all queries, but do not cache.
-const queryLoader = new BatchLoader(
+const queryLoader = new DataLoader(
   (queries) =>
     new Promise((resolve) => {
       const waitingOn = queries.length;
@@ -153,13 +169,13 @@ Promise.all([promise1, promise2]).then(([user1, user2]) => {
 This example demonstrates how to use batch-loader with SQL databases via Knex.js, which is a SQL query builder and a client for popular databases such as PostgreSQL, MySQL, MariaDB etc.
 
 ```js
-const BatchLoader = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("@feathers-plus/batch-loader");
 const db = require("./db"); // an instance of Knex client
 
 // The list of batch loaders
 
 const batchLoader = {
-  user: new BatchLoader((ids) =>
+  user: new DataLoader((ids) =>
     db
       .table("users")
       .whereIn("id", ids)
@@ -167,7 +183,7 @@ const batchLoader = {
       .then((rows) => ids.map((id) => rows.find((x) => x.id === id)))
   ),
 
-  story: new BatchLoader((ids) =>
+  story: new DataLoader((ids) =>
     db
       .table("stories")
       .whereIn("id", ids)
@@ -175,7 +191,7 @@ const batchLoader = {
       .then((rows) => ids.map((id) => rows.find((x) => x.id === id)))
   ),
 
-  storiesByUserId: new BatchLoader((ids) =>
+  storiesByUserId: new DataLoader((ids) =>
     db
       .table("stories")
       .whereIn("author_id", ids)
@@ -199,7 +215,7 @@ Promise.all([
 Full implementation:
 
 ```js
-const BatchLoader = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("@feathers-plus/batch-loader");
 const r = require("rethinkdb");
 const db = await r.connect();
 
@@ -210,7 +226,7 @@ const batchLoadFunc = (keys) =>
     .then((res) => res.toArray())
     .then(normalizeRethinkDbResults(keys, "id"));
 
-const exampleLoader = new BatchLoader(batchLoadFunc);
+const exampleLoader = new DataLoader(batchLoadFunc);
 
 await exampleLoader.loadMany([1, 2, 3]); // [{"id": 1, "name": "Document 1"}, {"id": 2, "name": "Document 2"}, Error];
 
