@@ -1,36 +1,92 @@
-## Creating a new loader per Request.
+## Reusing loaders
 
-In many applications, a server using loader serves requests to many different users with different access permissions. It may be dangerous to use one cache across many users, and it is encouraged to create a new loader per request. But, it is also encouraged to pass this loader to all service calls within that same request.
+Pass the loader to any and all service calls. This maximizes performance by allowing the loader to re-use its cache and batching mechanism as much as possible. If you are using Feathers v5, you can also use Node's `AsyncLocalStorage` mechanism to automatically pass the loader from service to service.
 
 ```js
-const { AppLoader } = require('@feathers-plus/batch-loader');
+const { AppLoader } = require('feathers-dataloader');
+const { AsyncLocalStorage } = require('async_hooks');
 
-const initializeLoader = context => {
+const asyncLocalStorage = new AsyncLocalStorage();
+
+const initializeLoader = async (context, next) => {
   if (context.params.loader) {
-    // Allow the user to pass in a loader. This is good practice to share
-    // loaders across many service calls.
-    return context;
+    return next();
   }
 
-  context.params.loader = new AppLoader({ app: context.app });
-  return context;
-}
+  const store = asyncLocalStorage.getStore();
 
-// Use this generic hook to ensure that a loader is always configured
-// in your hooks. You can now access context.params.loader in any hook.
+  if (store.loader) {
+    context.params.loader = store.loader;
+    return next();
+  }
+
+  const loader = new AppLoader({ app: context.app });
+
+  asyncLocalStorage.run({ loader }, async () => {
+    context.params.loader = loader;
+    next();
+  });
+};
+
 app.hooks({
   before: {
     all: [initializeLoader]
   }
 })
 
-// Pass the loader to any and all service calls. This maximizes performance
-// by allowing the loader to re-use its cache and batching mechanism
-// as much as possible.
+// No need to manually pass the loader because AsyncLocalStorage
+// in the initializeLoader functions automatically passes it.
 const withResults = withResults({
-  user: ({ user_id }, context) => {
+  user: (post, context) => {
     const { loader } = context.params;
-    return loader.service('users').load(user_id, { loader });
+    return loader.service('users').load(post.userId);
+  }
+});
+
+app.service('posts').hooks({
+  after: {
+    all: [withResults]
+  }
+});
+```
+
+## Use loaders EVERYWHERE
+
+The more the loader is used, the better performance can be. This is generally accomplished by passing the loader from service to service in hooks and resolvers. But, you can use loaders in other places which will also lead to performance gains.
+
+```js
+const validateUserId = async (context) => {
+  const { loader } = context.params;
+  const { userId } = context.data;
+
+  // Note we use the loader to lookup this user
+  const user = await loader.service('users').load(userId);
+
+  if (!user) {
+    throw new Error('Invalid userId');
+  }
+
+  return context;
+};
+
+const withResults = withResults({
+  user: (post, context) => {
+    const { loader } = context.params;
+
+    // We get user for free here! The loader is already cached
+    // because we used it in the validateUserId hook
+    return loader.service('users').load(post.userId);
+  }
+});
+
+app.service('posts').hooks({
+  before: {
+    create: [validateUserId],
+    update: [validateUserId],
+    patch: [validateUserId],
+  }
+  after: {
+    all: [withResults]
   }
 });
 ```
@@ -64,7 +120,7 @@ let usernameLoader = new DataLoader((names) =>
 By default, batch-loader uses the standard Map which simply grows until the batch-loader is released. A custom cache is provided as a convenience if you want to persist caches for longer periods of time. It implements a **least-recently-used** algorithm and allows you to limit the number of records cached.
 
 ```js
-const { DataLoader } = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('feathers-dataloader');
 const cache = require('@feathers-plus/cache');
 
 const usersLoader = new DataLoader(
@@ -84,7 +140,7 @@ batch-loader provides a simplified and consistent API over various data sources,
 Redis is a very simple key-value store which provides the batch load method MGET which makes it very well suited for use with batch-loader.
 
 ```js
-const { DataLoader } = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("feathers-dataloader");
 const redis = require("redis");
 
 const client = redis.createClient();
@@ -112,7 +168,7 @@ While not a key-value store, SQL offers a natural batch mechanism with SELECT \*
 This example uses the sqlite3 client which offers a parallelize method to further batch queries together. Another non-caching batch-loader utilizes this method to provide a similar API. batch-loaders can access other batch-loaders.
 
 ```js
-const { DataLoader } = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("feathers-dataloader");
 const sqlite3 = require("sqlite3");
 
 const db = new sqlite3.Database("./to/your/db.sql");
@@ -169,7 +225,7 @@ Promise.all([promise1, promise2]).then(([user1, user2]) => {
 This example demonstrates how to use batch-loader with SQL databases via Knex.js, which is a SQL query builder and a client for popular databases such as PostgreSQL, MySQL, MariaDB etc.
 
 ```js
-const { DataLoader } = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("feathers-dataloader");
 const db = require("./db"); // an instance of Knex client
 
 // The list of batch loaders
@@ -215,7 +271,7 @@ Promise.all([
 Full implementation:
 
 ```js
-const { DataLoader } = require("@feathers-plus/batch-loader");
+const { DataLoader } = require("feathers-dataloader");
 const r = require("rethinkdb");
 const db = await r.connect();
 

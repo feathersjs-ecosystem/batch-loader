@@ -1,5 +1,5 @@
-import BatchLoader = require("@feathers-plus/batch-loader");
-import { Application, Service } from "@feathersjs/feathers";
+import BatchLoader = require("feathers-dataloader");
+import { Application } from "@feathersjs/feathers";
 
 const app: Application = null as any;
 

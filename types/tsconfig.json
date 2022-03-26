@@ -9,7 +9,7 @@
     "noEmit": true,
     "baseUrl": "./",
     "paths": {
-      "@feathers-plus/batch-loader": [
+      "feathers-dataloader": [
         "."
       ]
     }

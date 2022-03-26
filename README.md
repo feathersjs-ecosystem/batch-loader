@@ -1,76 +1,96 @@
-# feathers-ecosystem/batch-loader
-
-<!-- [![Dependency Status](https://img.shields.io/david/feathers-plus/batch-loader.svg?style=flat-square)](https://david-dm.org/feathers-plus/batch-loader)
-[![Download Status](https://img.shields.io/npm/dm/@feathers-plus/batch-loader.svg?style=flat-square)](https://www.npmjs.com/package/@feathers-plus/batch-loader) -->
+# feathers-ecosystem/feathers-dataloader
 
 > Reduce requests to backend services by batching calls and caching records.
 
 ## Installation
 
 ```
-npm install @feathers-plus/batch-loader --save
+npm install feathers-dataloader --save
 ```
 
 ## Documentation
 
-Please refer to the [batch-loader documentation](./docs/index.md) for more details.
+Please refer to the documentation for more information.
+- [Documentation](./docs/index.md) - Definitions for the classes exported from this library
+- [Common Patterns](./docs/common-patterns.md) - Common patterns and best practices
+- [Guide](./docs/guide.md) - Detailed information about how loading, caching, batching works
 
-## Basic Example
-
-Use the `loaderFactory` static method to create a basic batch-loader. This is simply syntatic sugar for manually creating a batch-loader. This "Basic Example" and "Complete Example" create the same batch-loader.
+## TLDR
 
 ```js
-const BatchLoader = require("@feathers-plus/batch-loader");
-
-const usersBatchLoader = BatchLoader.loaderFactory(
-  app.service("users"),
-  "id",
-  false
-);
-
-app
-  .service("comments")
-  .find()
-  .then((comments) =>
-    Promise.all(
-      comments.map((comment) => {
-        // Attach user record
-        return usersBatchLoader
-          .load(comment.userId)
-          .then((user) => (comment.userRecord = user));
-      })
-    )
-  );
+Promise.all([
+  posts.get(1),
+  posts.get(2),
+  posts.find({ query: { id: { $in: [3, 4] } } }),
+  posts.get(5),
+]);
 ```
 
-## Complete Example
-
-Use the `BatchLoader` class to create more complex loaders. These loaders can call other services, call DB's directly, or even call third party services. This example manually implements the same loader created with the `loaderFactory` above.
+is slower than
 
 ```js
-const BatchLoader = require("@feathers-plus/batch-loader");
-const { getResultsByKey, getUniqueKeys } = BatchLoader;
+posts.find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
+```
 
-const usersBatchLoader = new BatchLoader((keys) =>
-  app
-    .service("users")
-    .find({ query: { id: { $in: getUniqueKeys(keys) } } })
-    .then((result) => getResultsByKey(keys, result, (user) => user.id, "!"))
-);
+Feathers Dataloader makes it easy and fast to write these kinds of queries.
 
-app
-  .service("comments")
-  .find()
-  .then((comments) =>
-    Promise.all(
-      comments.map((comment) => {
-        // Attach user record
-        return usersBatchLoader
-          .load(comment.userId)
-          .then((user) => (comment.userRecord = user));
-      })
-    )
-  );
+```js
+const loader = new AppLoader({ app: context.app });
+
+Promise.all([
+  loader.service('posts').load(1),
+  loader.service('posts').load(2),
+  loader.service('posts').load([3, 4]),
+  loader.service('posts').load(5),
+]);
+```
+
+is automatically converted to
+
+```js
+posts.find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
+```
+
+
+## Quick Start
+
+```js
+const { AppLoader } = require('feathers-dataloader');
+
+// See Common Patterns for more information about how to better pass
+// loaders from service to service
+const initializeLoader = context => {
+  if (context.params.loader) {
+    return context;
+  }
+  context.params.loader = new AppLoader({ app: context.app });
+  return context;
+}
+
+// Use this app hook to ensure that a loader is always configured in
+// your service hooks. You can now access context.params.loader in any hook.
+app.hooks({
+  before: {
+    all: [initializeLoader]
+  }
+})
+
+// Pass the loader to any and all service calls. This maximizes
+// performance by allowing the loader to reuse its cache and
+// batching mechanism as much as possible.
+const withResults = withResults({
+  user: (post, context) => {
+    const { loader } = context.params;
+    return loader.service('users').load(post.userId, { loader });
+  }
+});
+
+
+app.service('posts').hooks({
+  after: {
+    all: [withResults]
+  }
+});
 ```
 
 ## License

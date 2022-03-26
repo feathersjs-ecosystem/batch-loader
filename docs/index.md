@@ -4,9 +4,9 @@
 Feathers-dataloader exports 5 classes. The easiest way to use feathers-datalaoader is to use the `AppLoader`. This is a high level class that configures and caches the lower level classes on the fly with common defaults and best practices.
 
 ```js
-npm install --save @feathers-plus/batch-loader
+npm install --save feathers-dataloader
 
-const { AppLoader } = require('@feathers-plus/batch-loader');
+const { AppLoader } = require('feathers-dataloader');
 
 const loader = new AppLoader({ app });
 
@@ -16,31 +16,30 @@ const user = await loader.service('users').load(1);
 const user = await loader.service('users').load({ username: "Marshall" });
 // Load two users user with ids 1, 2
 const users = await loader.service('users').load([1, 2]);
+
 // Load multiple comments for user with id 1
-const comments = await loader.service('users').loadMulti({ user_id: 1 });
+const comments = await loader.service('users').loadMulti({ userId: 1 });
 // Load multiple comments for both users 1, 2
-const comments = await loader.service('users').loadMulti({ user_id: [1, 2] });
+const comments = await loader.service('users').loadMulti({ userId: [1, 2] });
 
 // Use params
 const user = await loader.service('users').load(1, { query: { status: 'active' } });
 
-// Get one user with id 1. Similar to .load() but does not use batching. It
-// does cache results of the id/params
+// Get one user with id 1. Similar to .load() but does not use batching.
+// It does cache results of the id/params
 const user = await loader.service('users')get(1);
-// Find many users. Usefule for finding records that do not have a keyed relationship. Uses
-// cached results of the params
+// Find many users. Useful for finding records that do not have a keyed relationship.
+// Uses cached results of the params
 const users = await loader.service('users')find({ query: { status: 'active' } });
 ```
 
 Loaders are most commonly used when resolving data onto results. This is generally done in hooks like `withResult`, `fastJoin`, and `feathers-schema`. Setup a loader in before hooks to make it available to these other hookse
 
 ```js
-const { AppLoader } = require('@feathers-plus/batch-loader');
+const { AppLoader } = require('feathers-dataloader');
 
 const initializeLoader = context => {
   if (context.params.loader) {
-    // Allow the user to pass in a loader. This is good practice to share
-    // loaders across many service calls.
     return context;
   }
 
@@ -49,17 +48,17 @@ const initializeLoader = context => {
 }
 
 const withResults = withResult({
-  user: ({ user_id }, context) => {
+  user: (post, context) => {
     const { loader } = context.params;
-    return loader.service('users').load(user_id);
+    return loader.service('users').load(post.userId);
   }
 });
 
 // Pass the loader to many service calls for best results
 const withResults = withResults({
-  user: ({ user_id }, context) => {
+  user: (post, context) => {
     const { loader } = context.params;
-    return loader.service('users').load(user_id, { loader });
+    return loader.service('users').load(post.userId, { loader });
   }
 });
 
@@ -69,7 +68,7 @@ The `AppLoader` lazily configures a new `ServiceLoader` per service as you use t
 
 ```js
 
-const { BatchLoader, CacheLoader, ServiceLoader } = require('@feathers-plus/batch-loader');
+const { BatchLoader, CacheLoader, ServiceLoader } = require('feathers-dataloader');
 
 // The serviceLoader gives access to all 4 methods
 const serviceLoader = new ServiceLoader({ service: app.service('users') });
@@ -94,7 +93,7 @@ The `BatchLoader` configures a `DataLoader` with some basic options. The `DataLo
 
 
 ```js
-const DataLoader = require('@feathers-plus/batch-loader');
+const DataLoader = require('feathers-dataloader');
 const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 const usersLoader = new DataLoader(async (keys, context) => {
@@ -129,7 +128,7 @@ Create a new app-loader. This is the most commonly used class.
 - **Example**
 
 ```js
-  const { AppLoader } = require("@feathers-plus/batch-loader");
+  const { AppLoader } = require("feathers-dataloader");
 
   const loader = new AppLoader({
     app,
@@ -164,7 +163,7 @@ Create a new service-loader. This class lazily configures underlying `BatchLoade
 - **Example**
 
 ```js
-  const { ServiceLoader } = require("@feathers-plus/batch-loader");
+  const { ServiceLoader } = require("feathers-dataloader");
 
   const loader = new ServiceLoader({
     service: app.service('users'),
@@ -197,7 +196,7 @@ Create a new batch-loader. This class lazily configures underlying `DataLoader` 
 - **Example**
 
 ```js
-  const { BatchLoader } = require("@feathers-plus/batch-loader");
+  const { BatchLoader } = require("feathers-dataloader");
 
   const loader = new BatchLoader({
     service: app.service('users'),
@@ -237,7 +236,7 @@ Create a new cache-loader. Create a loader that caches `get()` and `find()` quer
 - **Example**
 
 ```js
-  const { CacheLoader } = require("@feathers-plus/batch-loader");
+  const { CacheLoader } = require("feathers-dataloader");
 
   const loader = new CacheLoader({
     service: app.service('users'),
@@ -287,7 +286,7 @@ Create a new batch-loader given a batch loading function and options.
 - **Example**
 
   ```js
-  const DataLoader = require("@feathers-plus/batch-loader");
+  const DataLoader = require("feathers-dataloader");
   const { getResultsByKey, getUniqueKeys } = DataLoader;
 
   const usersLoader = new DataLoader(
@@ -313,7 +312,7 @@ Create a new batch-loader given a batch loading function and options.
   The default cache will grow without limit, which is reasonable for short lived batch-loaders which are rebuilt on every request. The number of records cached can be limited with a _least-recently-used_ cache:
 
   ```js
-  const DataLoader = require('@feathers-plus/batch-loader');
+  const DataLoader = require('feathers-dataloader');
   const cache = require('@feathers-plus/cache');
 
   const usersLoader = new DataLoader(

@@ -41,10 +41,10 @@ Forked from facebook/dataloader (src/index.d.ts)
 
 import { HookContext, Service } from "@feathersjs/feathers";
 
-declare class BatchLoader<K, V, C> {
+declare class DataLoader<K, V, C> {
   constructor(
-    batchLoadFn: BatchLoader.BatchLoadFn<K, V, C>,
-    options?: BatchLoader.Options<K, V, C>
+    batchLoadFn: DataLoader.BatchLoadFn<K, V, C>,
+    options?: DataLoader.Options<K, V, C>
   );
 
   /**
@@ -55,7 +55,7 @@ declare class BatchLoader<K, V, C> {
     resultArray: ReadonlyArray<any>,
     serializeRecordKey: ((item: any) => string) | string,
     resultType: "" | "!" | "[]" | "[]!" | "[!]" | "[!]!",
-    options?: BatchLoader.GetResultsByKeyOptions
+    options?: DataLoader.GetResultsByKeyOptions
   ): object[];
 
   /**
@@ -67,13 +67,13 @@ declare class BatchLoader<K, V, C> {
     service: Service<T>,
     id: string,
     multi?: boolean,
-    options?: BatchLoader.LoaderFactoryOptions
-  ): <C>(context: C) => BatchLoader<any, T, C>;
+    options?: DataLoader.LoaderFactoryOptions
+  ): <C>(context: C) => DataLoader<any, T, C>;
 
   /**
    * Loads a key, returning a `Promise` for the value represented by that key.
    */
-  load(key: K): Promise<V>;
+  load(key: K, params?: any): Promise<V>;
 
   /**
    * Loads multiple keys, promising an array of values:
@@ -88,24 +88,24 @@ declare class BatchLoader<K, V, C> {
    *     ]);
    *
    */
-  loadMany(keys: K[]): Promise<V[]>;
+  loadMany(keys: K[], params?: any): Promise<V[]>;
 
   /**
    * Clears the value at `key` from the cache, if it exists.
    * Clears the entire cache if no key provide. To be used when some event
-   * results in unknown invalidations across this particular `BatchLoader`.
+   * results in unknown invalidations across this particular `DataLoader`.
    * Returns itself for method chaining.
    */
-  clear(key?: K): BatchLoader<K, V, C>;
+  clear(key?: K, params?: any): DataLoader<K, V, C>;
 
   /**
    * Adds the provied key and value to the cache. If the key already exists, no
    * change is made. Returns itself for method chaining.
    */
-  prime(key: K, value: V): BatchLoader<K, V, C>;
+  prime(key: K, value: V): DataLoader<K, V, C>;
 }
 
-declare namespace BatchLoader {
+declare namespace DataLoader {
   interface GetResultsByKeyOptions {
     onError: (i: number, message: string) => void;
     defaultElem: any;
@@ -177,4 +177,4 @@ declare namespace BatchLoader {
   }
 }
 
-export = BatchLoader;
+export = DataLoader;

@@ -24,7 +24,7 @@ The latter sends only one query to database and retrieves the same 5 records as 
 Batch-loader is a tool to help you batch database calls in such a way. First, create a batch-loader by providing a batch loading function which accepts an array of keys and an optional context. It returns a Promise which resolves to an array of values.
 
 ```js
-const { DataLoader } = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('feathers-dataloader');
 const usersLoader = new DataLoader((keys, context) => {
   return app.service('users').find({ query: { id: { $in: keys } } })
     .then(records => {
@@ -84,7 +84,7 @@ The `null` indicating there is no record for `user.id === 99`.
 Batch-loader provides two convenience functions that will perform this reorganization for you.
 
 ```js
-const { DataLoader } = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('feathers-dataloader');
 const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 const usersLoader = new DataLoader(keys =>
@@ -130,7 +130,7 @@ There are two concerns though. First the cache could keep filling up with record
 **@feathers-plus/cache** is a least-recently-used (LRU) cache which you can inject when initializing the batch-loader. You can specify the maximum number of records to be kept in the cache, and it will retain the least recently used records.
 
 ```js
-const { DataLoader } = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('feathers-dataloader');
 const cache = require('@feathers-plus/cache');
 
 const usersLoader = new DataLoader(
@@ -236,7 +236,7 @@ Both of these make the following database service calls, and both get the follow
 The batch-loader function will be called for every `load` and `loadMany` when batching and caching are disabled in the batch-loader. This means it acts just like individual `get` and `find` method calls. Let's rewrite the above example using such a rudimentary batch-loader:
 
 ```js
-const { DataLoader } = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('feathers-dataloader');
 const { getResultsByKey, getUniqueKeys } = DataLoader;
 
 // Populate using Promises.
@@ -300,7 +300,7 @@ The more service calls made, the better batch-loader performs. The above example
 
 ```js
 const { map, parallel } = require('asyncro');
-const { DataLoader } = require('@feathers-plus/batch-loader');
+const { DataLoader } = require('feathers-dataloader');
 
 const { getResultsByKey, getUniqueKeys } = DataLoader;
 
