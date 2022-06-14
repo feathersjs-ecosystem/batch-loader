@@ -60,5 +60,8 @@
     "mocha": "^8.2.1",
     "semistandard": "^16.0.0",
     "typescript": "^4.1.4"
+  },
+  "dependencies": {
+    "dataloader": "^2.1.0"
   }
 }
