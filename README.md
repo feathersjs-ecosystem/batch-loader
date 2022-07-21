@@ -19,36 +19,36 @@ Please refer to the documentation for more information.
 
 ```js
 Promise.all([
-  posts.get(1),
-  posts.get(2),
-  posts.find({ query: { id: { $in: [3, 4] } } }),
-  posts.get(5),
+  app.service('posts').get(1),
+  app.service('posts').get(2),
+  app.service('posts').find({ query: { id: { $in: [3, 4] } } }),
+  app.service('posts').get(5)
 ]);
 ```
 
 is slower than
 
 ```js
-posts.find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
+app.service('posts').find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
 ```
 
-Feathers Dataloader makes it easy and fast to write these kinds of queries.
+Feathers Dataloader makes it easy and fast to write these kinds of queries. The loader handles coalescing all of the IDs into one request and mapping them back to the proper caller.
 
 ```js
 const loader = new AppLoader({ app: context.app });
 
 Promise.all([
-  loader.service('posts').load(1),
-  loader.service('posts').load(2),
-  loader.service('posts').load([3, 4]),
-  loader.service('posts').load(5),
+  loader.service('posts').load({ id: 1 }),
+  loader.service('posts').load({ id: 2 }),
+  loader.service('posts').load({ id: [3, 4] }),
+  loader.service('posts').load({ id: 5 })
 ]);
 ```
 
 is automatically converted to
 
 ```js
-posts.find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
+app.service('posts').find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
 ```
 
 
@@ -58,7 +58,7 @@ posts.find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
 const { AppLoader } = require('feathers-dataloader');
 
 // See Common Patterns for more information about how to better pass
-// loaders from service to service
+// loaders from service to service.
 const initializeLoader = context => {
   if (context.params.loader) {
     return context;
@@ -75,26 +75,32 @@ app.hooks({
   }
 })
 
-// Pass the loader to any and all service calls. This maximizes
+
+// Loaders are most commonly used in resolvers like @feathersjs/schema,
+// withResults, or fastJoin. See the Common Patterns section for more
+// information and common usecases.
+// Pass the loader to any and all service/loader calls. This maximizes
 // performance by allowing the loader to reuse its cache and
 // batching mechanism as much as possible.
-const withResults = withResults({
-  user: (post, context) => {
-    const { loader } = context.params;
-    return loader.service('users').load(post.userId, { loader });
+const { resolveResult, resolve } = require('@feathersjs/schema');
+
+const postResultsResolver = resolve({
+  properties: {
+    user: (value, post, context) => {
+      const { loader } = context.params;
+      return loader.service('users').load({ id: post.userId }, { loader });
+    }
   }
 });
 
 
 app.service('posts').hooks({
   after: {
-    all: [withResults]
+    all: [resolveResult(postResultsResolver)]
   }
 });
 ```
 
 ## License
-
-Copyright (c) 2017 John J. Szwaronek
 
 Licensed under the [MIT license](LICENSE).

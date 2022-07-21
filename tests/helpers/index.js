@@ -37,15 +37,3 @@ function makeApp () {
   app.use('users', memory({ store: usersStore }));
   return app;
 }
-
-
-
-function asyncReturn (value) {
-  return new Promise(resolve => {
-    setTimeout(() => { resolve(value); }, 10);
-  });
-}
-
-function clone (obj) {
-  return JSON.parse(JSON.stringify(obj));
-}

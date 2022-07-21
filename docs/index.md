@@ -11,33 +11,37 @@ const { AppLoader } = require('feathers-dataloader');
 const loader = new AppLoader({ app });
 
 // Load one user with id 1
-const user = await loader.service('users').load(1);
+const user = await loader.service('users').load({ id: 1 });
 // Load one user with username "Marshall"
 const user = await loader.service('users').load({ username: "Marshall" });
-// Load two users user with ids 1, 2
-const users = await loader.service('users').load([1, 2]);
+// Load two users with ids 1, 2
+const users = await loader.service('users').load({ id: [1, 2] });
 
 // Load multiple comments for user with id 1
-const comments = await loader.service('users').loadMulti({ userId: 1 });
+const comments = await loader.service('comments').loadMulti({ userId: 1 });
 // Load multiple comments for both users 1, 2
-const comments = await loader.service('users').loadMulti({ userId: [1, 2] });
+const comments = await loader.service('comments').loadMulti({ userId: [1, 2] });
 
 // Use params
-const user = await loader.service('users').load(1, { query: { status: 'active' } });
+const user = await loader.service('users').load({ id: 1 }, { query: { status: 'active' } });
 
-// Get one user with id 1. Similar to .load() but does not use batching.
-// It does cache results of the id/params
+// Get one user with id 1. Similar to .load() but does not use batching and uses a
+// regular .get(). It does cache results of the id/params
 const user = await loader.service('users')get(1);
-// Find many users. Useful for finding records that do not have a keyed relationship.
-// Uses cached results of the params
+// Find many users. Useful for finding records that do not have a keyed relationship,
+// but can still benefit from caching. Uses cached results of the params
 const users = await loader.service('users')find({ query: { status: 'active' } });
 ```
 
-Loaders are most commonly used when resolving data onto results. This is generally done in hooks like `withResult`, `fastJoin`, and `feathers-schema`. Setup a loader in before hooks to make it available to these other hookse
+Loaders are most commonly used when resolving data onto results. This is generally done in hooks like `@feathers-/schema`, `withResult`, or `fastJoin`. Setup a loader in before hooks to make it available to these other hooks.
 
 ```js
 const { AppLoader } = require('feathers-dataloader');
 
+
+// Use app.hooks() to initiliaze or pass on a loader
+// with each service request. This ensures there is
+// always params.loader available in subsequent hooks.
 const initializeLoader = context => {
   if (context.params.loader) {
     return context;
@@ -47,21 +51,32 @@ const initializeLoader = context => {
   return context;
 }
 
-const withResults = withResult({
-  user: (post, context) => {
-    const { loader } = context.params;
-    return loader.service('users').load(post.userId);
+app.hooks({
+  before: {
+    all: [initializeLoader]
+  }
+});
+```
+
+Now loaders are available everywhere! No need to instantiate or configure a `ServiceLoader` for each service ahead of time. `ServiceLoader` are lazily created and cached as they are called. It is also best practice to pass the loader onto susequent service/loader calls to maximize effeciency. See the [Common Patterns](./docs/common-patterns.md) section for more info.
+
+```js
+const { resolveResult, resolve } = require('@feathersjs/schema');
+
+const postResultsResolver = resolve({
+  properties: {
+    user: (value, post, context) => {
+      const { loader } = context.params;
+      return loader.service('users').load({ id: post.userId }, { loader });
+    }
   }
 });
 
-// Pass the loader to many service calls for best results
-const withResults = withResults({
-  user: (post, context) => {
-    const { loader } = context.params;
-    return loader.service('users').load(post.userId, { loader });
+app.service('posts').hooks({
+  after: {
+    all: [resolveResult(postResultsResolver)]
   }
 });
-
 ```
 
 The `AppLoader` lazily configures a new `ServiceLoader` per service as you use them. This means that you do not have to configure the lower level `ServiceLoader` classes. The `ServiceLoader` then lazily creates a `BatchLoader` (for .load() and .loadMulti() methods) and a `CacheLoader` (for .get() and .find() methods). But, you can use these classes individually, although it is generally not needed.
@@ -72,15 +87,15 @@ const { BatchLoader, CacheLoader, ServiceLoader } = require('feathers-dataloader
 
 // The serviceLoader gives access to all 4 methods
 const serviceLoader = new ServiceLoader({ service: app.service('users') });
-const user = await serviceLoader.load(1);
-const users = await serviceLoader.loadMulti(1);
+const user = await serviceLoader.load({ id: 1 });
+const users = await serviceLoader.loadMulti({ id: 1 });
 const user = await serviceLoader.get(1);
 const users = await serviceLoader.find();
 
 // The batchLoader gives access to .load() and .loadMulti() methods
 const batchLoader = new BatchLoader({ service: app.service('users') });
-const user = await batchLoader.load(1);
-const users = await batchLoader.loadMulti(1);
+const user = await batchLoader.load({ id: 1 });
+const users = await batchLoader.loadMulti({ id: 1 });
 
 // The cacheLoader gives access to .get() and .find() methods
 const cacheLoader = new CacheLoader({ service: app.service('users') });
@@ -93,20 +108,16 @@ The `BatchLoader` configures a `DataLoader` with some basic options. The `DataLo
 
 
 ```js
-const DataLoader = require('feathers-dataloader');
-const { getResultsByKey, getUniqueKeys } = DataLoader;
+const { DataLoader, uniqueKeys, uniqueResults } = require('feathers-dataloader');
 
-const usersLoader = new DataLoader(async (keys, context) => {
-    const usersRecords = await users.find({ query: { id: { $in: getUniqueKeys(keys) } } });
-    return getResultsByKey(keys, usersRecords, user => user.id, '')
-  },
-  { context: {} }
+const usersLoader = new DataLoader(async (keys) => {
+    const results = await users.find({ query: { id: { $in: uniqueKeys(keys) } } });
+    return uniqueResults(keys, results);
+  }
 );
 
-const user = await usersLoader.load(key);
+const user = await usersLoader.load({ id: 1 });
 ```
-
-> May be used on the client.
 
 <!--- class AppLoader --------------------------------------------------------------------------->
 <h2 id="class-apploader">class AppLoader( [, options] )</h2>
@@ -124,8 +135,6 @@ Create a new app-loader. This is the most commonly used class.
 | `app`           | `Object`   |            | A feathers app                                   |
 | `cacheMap`      |  `Object`  | `new Map()`| Instance of Map (or an object with a similar API) to be used as cache. This caches each `ServiceLoader` per service name |
 | `serviceOptions`           | `Object`   |      {}      | An object where each key is a service name and holds `batchOptions` for a `BatchLoader` and `cacheOptions` for a `CacheLoader`                                 |
-
-- **Example**
 
 ```js
   const { AppLoader } = require("feathers-dataloader");
@@ -160,7 +169,6 @@ Create a new service-loader. This class lazily configures underlying `BatchLoade
 | `batchOptions`      |  `Object`  | {} | See `BatchLoader` |
 | `cacheOptions`           | `Object`   |      {}      | See `CacheLoader`                                 |
 
-- **Example**
 
 ```js
   const { ServiceLoader } = require("feathers-dataloader");
@@ -192,8 +200,6 @@ Create a new batch-loader. This class lazily configures underlying `DataLoader` 
 | `cacheParamsFn`           | `Function`   |      defaultCacheParamsFn      | A function that returns JSON.strinify-able params of a query to be used in the `cacheMap`. This function should return a set of params that will be used to identify this unique query and removes any non-serializable items. The default function returns params with query, user, authentication, and paginate.
 | `loaderOptions`      |  `Object`  | {} | See `DataLoader` |
 
-
-- **Example**
 
 ```js
   const { BatchLoader } = require("feathers-dataloader");
@@ -233,8 +239,6 @@ Create a new cache-loader. Create a loader that caches `get()` and `find()` quer
 | `cacheKeyFn`      |  `Function`  | defaultCacheKeyFn | Normalize keys. `(key) => key && key.toString ? key.toString() : String(key)` |
 
 
-- **Example**
-
 ```js
   const { CacheLoader } = require("feathers-dataloader");
 
@@ -257,76 +261,33 @@ Create a new cache-loader. Create a loader that caches `get()` and `find()` quer
 <!--- class DataLoader --------------------------------------------------------------------------->
 <h2 id="class-dataloader">class DataLoader( batchLoadFunc [, options] )</h2>
 
-Create a new batch-loader given a batch loading function and options.
-
-- **Arguments:**
-  - `{Function} batchLoadFunc`
-  - `{Object} [ options ]`
-    - `{Boolean} batch`
-    - `{Boolean} cache`
-    - `{Function} cacheKeyFn`
-    - `{Object} cacheMap`
-    - `{Object} context`
-    - `{Number} maxBatchSize`
-
-| Argument        |    Type    | Default | Description                                      |
-| --------------- | :--------: | ------- | ------------------------------------------------ |
-| `batchLoadFunc` | `Function` |         | See [Batch Function](./guide.md#batch-function). |
-| `options`       |  `Object`  |         | Options.                                         |
-
-| `options`      | Argument | Type         | Default                                                                                                                                | Description |
-| -------------- | -------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `batch`        | Boolean  | `true`       | Set to false to disable batching, invoking `batchLoadFunc` with a single load key.                                                     |
-| `cache`        | Boolean  | `true`       | Set to false to disable memoization caching, creating a new Promise and new key in the `batchLoadFunc` for every load of the same key. |
-| `cacheKeyFn`   | Function | `key => key` | Produces cache key for a given load key. Useful when keys are objects and two objects should be considered equivalent.                 |
-| `cacheMap`     | Object   | `new Map()`  | Instance of Map (or an object with a similar API) to be used as cache. See below.                                                      |
-| `context`      | Object   | `null`       | A context object to pass into `batchLoadFunc` as its second argument.                                                                  |
-| `maxBatchSize` | Number   | `Infinity`   | Limits the number of keys when calling `batchLoadFunc`.                                                                                |
-
-- **Example**
+This library re-exports [Dataloader](https://www.npmjs.com/package/dataloader) from its original package. Please see its documentation for more information. `loaderOptions` given to `BatchLoader` will be used to configure Dataloaders. You can also import `Dataloader` along with some helpful utility functions to build custom loaders.
 
   ```js
-  const DataLoader = require("feathers-dataloader");
-  const { getResultsByKey, getUniqueKeys } = DataLoader;
+  const { DataLoader uniqueResults, uniqueKeys } = require("feathers-dataloader");
+
+  const batchFn = async (keys, context) => {
+    const data = await users.find({
+      query: { id: { $in: uniqueKeys(keys) } },
+      paginate: false,
+    });
+    return uniqueResults(keys, data);
+  }
 
   const usersLoader = new DataLoader(
-    async (keys, context) => {
-      const data = await users.find({
-        query: { id: { $in: getUniqueKeys(keys) } },
-        paginate: false,
-      });
-      return getResultsByKey(keys, data, (user) => user.id, "");
-    },
-    { context: {}, batch: true, cache: true }
+    batchFn,
+    {
+      batch: true,
+      cache: true,
+      maxBatchSize: 100,
+      cacheKeyFn: (key) => key,
+      cacheMap: new Map()
+    }
   );
   ```
 
-- **Pagination**
-
-  The number of results returned by a query using `$in` is controlled by the pagination `max` set for that Feathers service. You need to specify a `paginate: false` option to ensure that records for all the keys are returned.
-
-  The maximum number of keys the `batchLoadFunc` is called with can be controlled by the DataLoader itself with the `maxBatchSize` option.
-
-- **option.cacheMap**
-
-  The default cache will grow without limit, which is reasonable for short lived batch-loaders which are rebuilt on every request. The number of records cached can be limited with a _least-recently-used_ cache:
-
-  ```js
-  const DataLoader = require('feathers-dataloader');
-  const cache = require('@feathers-plus/cache');
-
-  const usersLoader = new DataLoader(
-    keys => { ... },
-    { cacheMap: cache({ max: 100 })
-  );
-  ```
-
-  > You can consider wrapping npm's `lru` on the browser.
-
-- **See also:** [Guide](./guide.md)
-
-<!--- getUniqueKeys ------------------------------------------------------------------------------->
-<h2 id="get-unique-keys">static DataLoader.getUniqueKeys( keys )</h2>
+<!--- uniqueKeys ------------------------------------------------------------------------------->
+<h2 id="unique-keys">uniqueKeys(keys)</h2>
 
 Returns the unique elements in an array.
 
@@ -341,77 +302,38 @@ Returns the unique elements in an array.
 
   ```js
   const usersLoader = new DataLoader(async keys =>
-    const data = users.find({ query: { id: { $in: getUniqueKeys(keys) } } })
+    const data = users.find({ query: { id: { $in: uniqueKeys(keys) } } })
     ...
   );
   ```
 
-- **Details**
-
-  The array of keys may contain duplicates when the batch-loader's memoization cache is disabled.
-
-  <p class="tip">Function does not handle keys of type Object nor Array.</p>
-
 <!--- getResultsByKey ----------------------------------------------------------------------------->
-<h2 id="get-results-by-key">static DataLoader.getResultsByKey( keys, records, getRecordKeyFunc, type [, options] )</h2>
+<h2 id="get-results-by-key">uniqueRecords(keys, result, idProp = 'id', defaultValue = null)</h2>
 
 Reorganizes the records from the service call into the result expected from the batch function.
 
 - **Arguments:**
   - `{Array<String | Number>} keys`
-  - `{Array<Object>} records`
-  - `{Function} getRecordKeyFunc`
-  - `{String} type`
-  - `{Object} [ options ]`
-    - `{null | []} defaultElem`
-    - `{Function} onError`
+  - `{Object | Array<Object>} result`
+  - `{String} idProp`
+  - `{Any} defaultValue`
 
 | Argument           |             Type              | Default | Description                                                                                                   |
 | ------------------ | :---------------------------: | ------- | ------------------------------------------------------------------------------------------------------------- |
 | `keys`             | `Array<` `String /` `Number>` |         | An array of `key` elements, which the value the batch loader function will use to find the records requested. |
-| `records`          |     `Array< ` `Object >`      |         | An array of records which, in total, resolve all the `keys`.                                                  |
-| `getRecordKeyFunc` |          `Function`           |         | See below.                                                                                                    |
-| `type`             |           `String`            |         | The type of value the batch loader must return for each key.                                                  |
-| `options`          |           `Object`            |         | Options.                                                                                                      |
+| `result`          |     `Array< ` `Object >`      |         | Any service method result.                                                  |
+| `idProp` |          `String`           |         | The "id" property of the records.                                                                                                    |
+| `defaultValue`             |           `Any`            |         | The default value returned when there is no result matching a key.                                                  |
 
-| `type`   |                      Value                       | Description |
-| -------- | :----------------------------------------------: | ----------- |
-| `''`     |            An optional single record.            |
-| `'!'`    |            A required single record.             |
-| `'[]'`   | A required array including 0, 1 or more records. |
-| `'[]!'`  |                 Alias of `'[]'`                  |
-| `'[!]'`  |  A required array including 1 or more records.   |
-| `'[!]!'` |                 Alias of `'[!]'`                 |
-
-| `options`     | Argument      |       Type       | Default                                                                                        | Description |
-| ------------- | ------------- | :--------------: | ---------------------------------------------------------------------------------------------- | ----------- |
-| `defaultElem` | `{null / []}` |      `null`      | The value to return for a `key` having no record(s).                                           |
-| `onError`     | `Function`    | `(i, msg) => {}` | Handler for detected errors, e.g. `(i, msg) =>` `{ throw new Error(msg,` `'on element', i); }` |
-
-- **Example**
 
   ```js
   const usersLoader = new DataLoader(async (keys) => {
-    const data = users.find({ query: { id: { $in: getUniqueKeys(keys) } } });
-    return getResultsByKey(keys, data, (user) => user.id, "", {
+    const data = users.find({ query: { id: { $in: uniqueKeys(keys) } } });
+    return uniqueResults(keys, data, (user) => user.id, "", {
       defaultElem: [],
     });
   });
   ```
-
-- **Details**
-
-  <p class="tip">Function does not handle keys of type Object nor Array.</p>
-
-- **getRecordKeyFunc**
-
-  A function which, given a record, returns the key it satisfies, e.g.
-
-  ```js
-  (user) => user.id;
-  ```
-
-- **See also:** [Batch-Function](./guide.md#Batch-Function)
 
 <!--- load ---------------------------------------------------------------------------------------->
 <h2 id="load">batchLoader.load( key )</h2>
@@ -444,7 +366,6 @@ Loads multiple keys, promising a arrays of values.
 | -------- | :---------------------------------------------------: | ------- | ---------------------------------------------------- |
 | `keys`   | `Array<` `String /` ` Number /` ` Object /` ` Array>` |         | The keys the batch-loader will return result(s) for. |
 
-- **Example**
 
   ```js
   const usersLoader = new DataLoader( ... );
