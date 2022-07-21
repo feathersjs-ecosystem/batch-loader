@@ -10,22 +10,16 @@ describe('appLoader.test', () => {
   it('creates an AppLoader', () => {
     const appLoader = new AppLoader({ app });
     assert.isFunction(appLoader.service);
-    assert.isFunction(appLoader.clear);
-  });
-
-  it('takes a cacheMap option', () => {
-    const cacheMap = new Map([['posts', null]]);
-    const appLoader = new AppLoader({ app, cacheMap });
-    assert.deepEqual(appLoader._options.cacheMap.get('posts'), null);
+    // assert.isFunction(appLoader.remove);
   });
 
   it('returns a new ServiceLoader', () => {
     const appLoader = new AppLoader({ app });
     const serviceLoader = appLoader.service('posts');
-    assert.isFunction(serviceLoader.load);
-    assert.isFunction(serviceLoader.loadMulti);
     assert.isFunction(serviceLoader.get);
     assert.isFunction(serviceLoader.find);
+    // assert.isFunction(serviceLoader.remove);
+    // assert.isFunction(serviceLoader.update);
   });
 
   it('returns a cached ServiceLoader', () => {
@@ -35,36 +29,27 @@ describe('appLoader.test', () => {
     assert.deepEqual(serviceLoader1, serviceLoader2);
   });
 
-  it('passes serviceOptions', () => {
+  it('passes service options', () => {
     const appLoader = new AppLoader({
       app,
-      serviceOptions: {
+      services: {
         posts: {
-          cacheOptions: { cacheParamsFn: testFunc },
-          batchOptions: { cacheParamsFn: testFunc }
+          cacheParamsFn: testFunc
         }
       }
     });
     const serviceLoader = appLoader.service('posts');
-    const cacheLoaderOptions = serviceLoader._cacheLoader._options;
-    const batchLoaderOptions = serviceLoader._batchLoader._options;
-    assert.deepEqual(batchLoaderOptions.cacheParamsFn, testFunc);
-    assert.deepEqual(cacheLoaderOptions.cacheParamsFn, testFunc);
+    const cachedOptions = serviceLoader._options;
+    assert.deepEqual(cachedOptions.cacheParamsFn, testFunc);
   });
 
-  it('clears by serviceName', () => {
-    const appLoader = new AppLoader({ app });
-    appLoader.service('posts');
-    appLoader.service('comments');
-    appLoader.clear('posts');
-    assert.deepEqual(appLoader._options.cacheMap.size, 1);
-  });
-
-  it('clears all', () => {
-    const appLoader = new AppLoader({ app });
-    appLoader.service('posts');
-    appLoader.service('comments');
-    appLoader.clear();
-    assert.deepEqual(appLoader._options.cacheMap.size, 0);
+  it('passes default options', () => {
+    const appLoader = new AppLoader({
+      app,
+      cacheParamsFn: testFunc
+    });
+    const serviceLoader = appLoader.service('posts');
+    const cachedOptions = serviceLoader._options;
+    assert.deepEqual(cachedOptions.cacheParamsFn, testFunc);
   });
 });
