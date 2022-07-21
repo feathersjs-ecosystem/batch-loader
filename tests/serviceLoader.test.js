@@ -22,7 +22,7 @@ describe('serviceLoader.test', () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts')
     });
-    serviceLoader.load(1);
+    serviceLoader.load({ id: 1 });
     const batchLoader = serviceLoader._batchLoader;
     assert.deepEqual(batchLoader._options.cacheMap.size, 1);
   });
@@ -43,7 +43,7 @@ describe('serviceLoader.test', () => {
         cacheParamsFn: testFunc
       }
     });
-    serviceLoader.load(1);
+    serviceLoader.load({ id: 1 });
     const batchLoader = serviceLoader._batchLoader;
     assert.deepEqual(batchLoader._options.cacheParamsFn, testFunc);
   });
@@ -55,7 +55,7 @@ describe('serviceLoader.test', () => {
         cacheParamsFn: testFunc
       }
     });
-    serviceLoader.load(1);
+    serviceLoader.load({ id: 1 });
     const cacheLoader = serviceLoader._cacheLoader;
     assert.deepEqual(cacheLoader._options.cacheParamsFn, testFunc);
   });
@@ -65,10 +65,10 @@ describe('serviceLoader.test', () => {
       service: app.service('posts')
     });
     serviceLoader.get(1);
-    serviceLoader.load(1);
+    serviceLoader.load({ id: 1 });
     serviceLoader.get(2);
-    serviceLoader.load(2);
-    serviceLoader.clear(1);
+    serviceLoader.load({ id: 1 });
+    serviceLoader.clear({ id: 1 });
     const cacheLoader = serviceLoader._cacheLoader;
     const batchLoader = serviceLoader._batchLoader;
     assert.deepEqual(cacheLoader._options.cacheMap.size, 1);
@@ -81,16 +81,16 @@ describe('serviceLoader.test', () => {
     });
     serviceLoader.get(1);
     serviceLoader.get(1, { query: true });
-    serviceLoader.load(1);
-    serviceLoader.load(1, { query: true });
+    serviceLoader.load({ id: 1 });
+    serviceLoader.load({ id: 1 }, { query: true });
     serviceLoader.clear(null, { query: true });
     const cacheLoader = serviceLoader._cacheLoader;
     const batchLoader = serviceLoader._batchLoader;
     const dataLoader1 = batchLoader._options.cacheMap.get('["id",{},"load"]');
     const dataLoader2 = batchLoader._options.cacheMap.get('["id",{"query":true},"load"]');
     assert.deepEqual(cacheLoader._options.cacheMap.size, 1);
-    assert.deepEqual(dataLoader1._promiseCache.size, 1);
-    assert.deepEqual(dataLoader2._promiseCache.size, 0);
+    assert.deepEqual(dataLoader1._cacheMap.size, 1);
+    assert.deepEqual(dataLoader2._cacheMap.size, 0);
   });
 
   it('clears by id and params', () => {
@@ -99,16 +99,16 @@ describe('serviceLoader.test', () => {
     });
     serviceLoader.get(1);
     serviceLoader.get(1, { query: true });
-    serviceLoader.load(1);
-    serviceLoader.load(1, { query: true });
-    serviceLoader.clear(1, { query: true });
+    serviceLoader.load({ id: 1 });
+    serviceLoader.load({ id: 1 }, { query: true });
+    serviceLoader.clear({ id: 1 }, { query: true });
     const cacheLoader = serviceLoader._cacheLoader;
     const batchLoader = serviceLoader._batchLoader;
     const dataLoader1 = batchLoader._options.cacheMap.get('["id",{},"load"]');
     const dataLoader2 = batchLoader._options.cacheMap.get('["id",{"query":true},"load"]');
     assert.deepEqual(cacheLoader._options.cacheMap.size, 1);
-    assert.deepEqual(dataLoader1._promiseCache.size, 1);
-    assert.deepEqual(dataLoader2._promiseCache.size, 0);
+    assert.deepEqual(dataLoader1._cacheMap.size, 1);
+    assert.deepEqual(dataLoader2._cacheMap.size, 0);
   });
 
   it('clears all', () => {
@@ -119,10 +119,10 @@ describe('serviceLoader.test', () => {
     serviceLoader.get(1, { query: true });
     serviceLoader.find();
     serviceLoader.find({ query: true });
-    serviceLoader.load(1);
-    serviceLoader.load(1, { query: true });
-    serviceLoader.loadMulti(1);
-    serviceLoader.loadMulti(1, { query: true });
+    serviceLoader.load({ id: 1 });
+    serviceLoader.load({ id: 1 }, { query: true });
+    serviceLoader.loadMulti({ id: 1 });
+    serviceLoader.loadMulti({ id: 1 }, { query: true });
     serviceLoader.clear();
     const cacheLoader = serviceLoader._cacheLoader;
     const batchLoader = serviceLoader._batchLoader;
@@ -130,8 +130,8 @@ describe('serviceLoader.test', () => {
     const dataLoader2 = batchLoader._options.cacheMap.get('["id",{"query":true},"load"]');
     const dataLoader3 = batchLoader._options.cacheMap.get('["id",{"query":true},"loadMulti"]');
     assert.deepEqual(cacheLoader._options.cacheMap.size, 0);
-    assert.deepEqual(dataLoader1._promiseCache.size, 0);
-    assert.deepEqual(dataLoader2._promiseCache.size, 0);
-    assert.deepEqual(dataLoader3._promiseCache.size, 0);
+    assert.deepEqual(dataLoader1._cacheMap.size, 0);
+    assert.deepEqual(dataLoader2._cacheMap.size, 0);
+    assert.deepEqual(dataLoader3._cacheMap.size, 0);
   });
 });
