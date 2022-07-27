@@ -70,56 +70,17 @@ describe('serviceLoader.test', () => {
     assert.deepEqual(result, [defaultResult]);
   });
 
-  it('clears by idObject', () => {
-    const serviceLoader = new ServiceLoader({
-      service: app.service('posts')
-    });
-    serviceLoader.get({ id: 1 });
-    serviceLoader.get({ id: 2 });
-    serviceLoader.remove({ id: 1 });
-    const dataLoader = serviceLoader._cacheMap.get('["id","{}"]');
-    console.log(dataLoader._cacheMap)
-    assert.deepEqual(dataLoader._cacheMap.size, 1);
-  });
-
-  it('clears params', () => {
-    const serviceLoader = new ServiceLoader({
-      service: app.service('posts')
-    });
-    serviceLoader.get({ id: 1 });
-    serviceLoader.get({ id: 1 }, { query: true });
-    serviceLoader.remove(null, { query: true });
-    const dataLoader1 = serviceLoader._cacheMap.get('["id","{}"]');
-    const dataLoader2 = serviceLoader._cacheMap.get('["id","{"query":true}"]');
-    assert.deepEqual(dataLoader1._cacheMap.size, 1);
-    assert.deepEqual(dataLoader2._cacheMap.size, 0);
-  });
-
-  it('clears by id and params', () => {
-    const serviceLoader = new ServiceLoader({
-      service: app.service('posts')
-    });
-    serviceLoader.get({ id: 1 });
-    serviceLoader.get({ id: 1 }, { query: true });
-    serviceLoader.remove({ id: 1 }, { query: true });
-    const dataLoader1 = serviceLoader._cacheMap.get('["id","{}"]');
-    const dataLoader2 = serviceLoader._cacheMap.get('["id","{"query":true}"]');
-    assert.deepEqual(dataLoader1._cacheMap.size, 1);
-    assert.deepEqual(dataLoader2._cacheMap.size, 0);
-  });
-
   it('clears all', () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts')
     });
     serviceLoader.get({ id: 1 });
-    serviceLoader.get({ id: 2 });
     serviceLoader.get({ id: 1 }, { query: true });
-    serviceLoader.get({ id: 2 }, { query: true });
-    serviceLoader.remove();
-    // const dataLoader1 = serviceLoader._cacheMap.get('["id",{},"load"]');
-    // const dataLoader2 = serviceLoader._cacheMap.get('["id",{"query":true},"load"]');
-    // assert.deepEqual(dataLoader1._cacheMap.size, 0);
-    // assert.deepEqual(dataLoader2._cacheMap.size, 0);
+    serviceLoader.find({ id: 1 });
+    serviceLoader.find({ id: 1 }, { query: true });
+    serviceLoader.clearAll();
+    serviceLoader._cacheMap.forEach((loader) => {
+      assert.deepEqual(loader._cacheMap.size, 0);
+    })
   });
 });

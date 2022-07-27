@@ -21,15 +21,14 @@ Please refer to the documentation for more information.
 Promise.all([
   app.service('posts').get(1),
   app.service('posts').get(2),
-  app.service('posts').find({ query: { id: { $in: [3, 4] } } }),
-  app.service('posts').get(5)
+  app.service('posts').get(3)
 ]);
 ```
 
 is slower than
 
 ```js
-app.service('posts').find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
+app.service('posts').find({ query: { id: { $in: [1, 2, 3] } } });
 ```
 
 Feathers Dataloader makes it easy and fast to write these kinds of queries. The loader handles coalescing all of the IDs into one request and mapping them back to the proper caller.
@@ -38,17 +37,16 @@ Feathers Dataloader makes it easy and fast to write these kinds of queries. The 
 const loader = new AppLoader({ app: context.app });
 
 Promise.all([
-  loader.service('posts').load({ id: 1 }),
-  loader.service('posts').load({ id: 2 }),
-  loader.service('posts').load({ id: [3, 4] }),
-  loader.service('posts').load({ id: 5 })
+  loader.service('posts').get({ id: 1 }),
+  loader.service('posts').get({ id: 2 }),
+  loader.service('posts').get({ id: 3 })
 ]);
 ```
 
 is automatically converted to
 
 ```js
-app.service('posts').find({ query: { id: { $in: [1, 2, 3, 4, 5] } } });
+app.service('posts').find({ query: { id: { $in: [1, 2, 3] } } });
 ```
 
 
@@ -88,7 +86,7 @@ const postResultsResolver = resolve({
   properties: {
     user: (value, post, context) => {
       const { loader } = context.params;
-      return loader.service('users').load({ id: post.userId }, { loader });
+      return loader.service('users').get({ id: post.userId }, { loader });
     }
   }
 });

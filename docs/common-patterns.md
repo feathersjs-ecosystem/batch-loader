@@ -15,7 +15,7 @@ const initializeLoader = async (context, next) => {
 
   const store = asyncLocalStorage.getStore();
 
-  if (store.loader) {
+  if (store && store.loader) {
     context.params.loader = store.loader;
     return next();
   }
@@ -24,14 +24,12 @@ const initializeLoader = async (context, next) => {
 
   asyncLocalStorage.run({ loader }, async () => {
     context.params.loader = loader;
-    next();
+    return next();
   });
 };
 
 app.hooks({
-  before: {
-    all: [initializeLoader]
-  }
+  around: [initializeLoader]
 })
 
 // No need to manually pass the loader because AsyncLocalStorage
@@ -40,7 +38,7 @@ const postResultsResolver = resolve({
   properties: {
     user: (value, post, context) => {
       const { loader } = context.params;
-      return loader.service('users').load({ id: post.userId });
+      return loader.service('users').get({ id: post.userId });
     }
   }
 });
@@ -62,7 +60,7 @@ const validateUserId = async (context) => {
   const { userId } = context.data;
 
   // Note we use the loader to lookup this user
-  const user = await loader.service('users').load({ id: userId });
+  const user = await loader.service('users').get({ id: userId });
 
   if (!user) {
     throw new Error('Invalid userId');
@@ -77,7 +75,7 @@ const postResultsResolver = resolve({
       const { loader } = context.params;
       // We get user for free here! The loader is already cached
       // because we used it in the validateUserId before hook
-      return loader.service('users').load({ id: post.userId });
+      return loader.service('users').get({ id: post.userId });
     }
   }
 });
@@ -93,3 +91,40 @@ app.service('posts').hooks({
   }
 });
 ```
+
+## Clear loaders after mutation
+
+Even though loaders are generally created/destroyed with each request, its good practice to clear the cache after mutations. When using `AppLoader` and `ServiceLoader`, there is only one method `clearAll()` to clear the loader caches. Because of the lazy config when using these classes, its difficult for the developer to know all of the potential ids/params combos that may be cached. Instead, the `clearAll()` method dumps the whole cache. If any subsequent calls are made to the loader for this service it will return new results.
+
+```js
+const clearLoaderCache = async (context) => {
+  const loader = context.params.loader.service('users');
+  loader.clearAll();
+  return context;
+};
+
+app.service('posts').hooks({
+  after: {
+    all: [clearLoaderCache]
+  }
+});
+```
+
+But, you can get access to the underlying caches as well. You should use this with caution...cache invalidation is hard. If you are considering doing this, it may be best to use `DataLoader` classes directly so you can better control each loader.
+
+```js
+const clearLoaderCache = async (context) => {
+  const loader = context.params.loader.service('users');
+  loader._cacheMap.forEach((loader, loaderKey) => {
+    // Write code that will break your app.
+  });
+  return context;
+};
+
+app.service('posts').hooks({
+  after: {
+    all: [clearLoaderCache]
+  }
+});
+```
+

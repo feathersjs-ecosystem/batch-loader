@@ -1,7 +1,7 @@
 <!--- Usage --------------------------------------------------------------------------------------->
 <h2 id="Usage">Usage</h2>
 
-Feathers-dataloader exports 5 classes. The easiest way to use feathers-datalaoader is to use the `AppLoader`. This is a high level class that configures and caches the lower level classes on the fly with common defaults and best practices.
+The easiest way to use feathers-datalaoader is to use the `AppLoader`. This is a high level class that configures and caches the lower level classes on the fly with common defaults and best practices.
 
 ```js
 npm install --save feathers-dataloader
@@ -10,27 +10,36 @@ const { AppLoader } = require('feathers-dataloader');
 
 const loader = new AppLoader({ app });
 
-// Load one user with id 1
-const user = await loader.service('users').load({ id: 1 });
-// Load one user with username "Marshall"
-const user = await loader.service('users').load({ username: "Marshall" });
-// Load two users with ids 1, 2
-const users = await loader.service('users').load({ id: [1, 2] });
+// Get one user with id 1
+const user = await loader.service('users').get({ id: 1 });
 
-// Load multiple comments for user with id 1
-const comments = await loader.service('comments').loadMulti({ userId: 1 });
-// Load multiple comments for both users 1, 2
-const comments = await loader.service('comments').loadMulti({ userId: [1, 2] });
+// Get one user with username "Marshall"
+const user = await loader.service('users').get({ username: "DaddyWarbucks" });
+
+// Find multiple comments for user with userId 1
+const comments = await loader.service('comments').find({ userId: 1 });
+
+// Find multiple comments for user with username DaddyWarbucks
+const comments = await loader.service('comments').find({ username: "DaddyWarbucks" });
 
 // Use params
-const user = await loader.service('users').load({ id: 1 }, { query: { status: 'active' } });
+const user = await loader.service('users').get(
+  { id: 1 },
+  { query: { status: 'active' } }
+);
 
-// Get one user with id 1. Similar to .load() but does not use batching and uses a
-// regular .get(). It does cache results of the id/params
-const user = await loader.service('users')get(1);
-// Find many users. Useful for finding records that do not have a keyed relationship,
-// but can still benefit from caching. Uses cached results of the params
-const users = await loader.service('users')find({ query: { status: 'active' } });
+const users = await loader.service('users').find(
+  { id: 1 },
+  { query: { status: 'active' } }
+);
+
+// You can also call find() with a null id when there is no keyed relationship.
+// This is helpful for finds that are not necessarily "relationships" but
+// can still benefit from caching the results.
+const users users = await loader.service('users').find(
+  null,
+  { query: { status: 'active' } }
+);
 ```
 
 Loaders are most commonly used when resolving data onto results. This is generally done in hooks like `@feathers-/schema`, `withResult`, or `fastJoin`. Setup a loader in before hooks to make it available to these other hooks.
@@ -67,7 +76,7 @@ const postResultsResolver = resolve({
   properties: {
     user: (value, post, context) => {
       const { loader } = context.params;
-      return loader.service('users').load({ id: post.userId }, { loader });
+      return loader.service('users').get({ id: post.userId }, { loader });
     }
   }
 });
@@ -79,32 +88,18 @@ app.service('posts').hooks({
 });
 ```
 
-The `AppLoader` lazily configures a new `ServiceLoader` per service as you use them. This means that you do not have to configure the lower level `ServiceLoader` classes. The `ServiceLoader` then lazily creates a `BatchLoader` (for .load() and .loadMulti() methods) and a `CacheLoader` (for .get() and .find() methods). But, you can use these classes individually, although it is generally not needed.
+The `AppLoader` lazily configures a new `ServiceLoader` per service as you use them. This means that you do not have to configure the lower level `ServiceLoader` classes. But, you can use these classes individually, although it is generally not needed.
 
 ```js
 
-const { BatchLoader, CacheLoader, ServiceLoader } = require('feathers-dataloader');
+const { ServiceLoader } = require('feathers-dataloader');
 
-// The serviceLoader gives access to all 4 methods
 const serviceLoader = new ServiceLoader({ service: app.service('users') });
-const user = await serviceLoader.load({ id: 1 });
-const users = await serviceLoader.loadMulti({ id: 1 });
-const user = await serviceLoader.get(1);
-const users = await serviceLoader.find();
-
-// The batchLoader gives access to .load() and .loadMulti() methods
-const batchLoader = new BatchLoader({ service: app.service('users') });
-const user = await batchLoader.load({ id: 1 });
-const users = await batchLoader.loadMulti({ id: 1 });
-
-// The cacheLoader gives access to .get() and .find() methods
-const cacheLoader = new CacheLoader({ service: app.service('users') });
-const user = await cacheLoader.get(1);
-const users = await cacheLoader.find();
-
+const user = await serviceLoader.get({ id: 1 });
+const users = await serviceLoader.find({ id: 1 });
 ```
 
-The `BatchLoader` configures a `DataLoader` with some basic options. The `DataLoader` is a powerful batching and caching class that dramatically imporoves performance. It is based on the [facebook/dataloader](https://github.com/facebook/dataloader). If you are interested in how this works in depth, check out this [GREAT VIDEO](https://www.youtube.com/watch?v=OQTnXNCDywA) by its original author. You should also checkout the [GUIDE](./guide.md) for a comprehensive explanation of how the `DataLoader` works.
+The `ServiceLoader` configures a `DataLoader` with some basic options. The `DataLoader` is a powerful batching and caching class that dramatically imporoves performance. It is based on the [facebook/dataloader](https://github.com/facebook/dataloader). If you are interested in how this works in depth, check out this [GREAT VIDEO](https://www.youtube.com/watch?v=OQTnXNCDywA) by its original author. You should also checkout the [GUIDE](./guide.md) for a comprehensive explanation of how the `DataLoader` works.
 
 
 ```js
@@ -116,7 +111,7 @@ const usersLoader = new DataLoader(async (keys) => {
   }
 );
 
-const user = await usersLoader.load({ id: 1 });
+const user = await usersLoader.load(1);
 ```
 
 <!--- class AppLoader --------------------------------------------------------------------------->
@@ -127,25 +122,23 @@ Create a new app-loader. This is the most commonly used class.
 - **Arguments:**
   - `{Object} [ options ]`
     - `{Object} app`
-    - `{Object} cacheMap`
-    - `{Object} serviceOptions`
+    - `{Object} services`
+    - ...globalLoaderOptions
 
 | Argument        |    Type    |   Default  | Description                                      |
 | --------------- | :--------: | ---------- | ------------------------------------------------ |
 | `app`           | `Object`   |            | A feathers app                                   |
-| `cacheMap`      |  `Object`  | `new Map()`| Instance of Map (or an object with a similar API) to be used as cache. This caches each `ServiceLoader` per service name |
-| `serviceOptions`           | `Object`   |      {}      | An object where each key is a service name and holds `batchOptions` for a `BatchLoader` and `cacheOptions` for a `CacheLoader`                                 |
+| `services`      |  `Object`  | `{}`| An object where each property is a service name and the value is loader options for that service. These options override the `globalLoaderOptions` |
+| `globalLoaderOptions`           | `Object`   |      {}      | Options that will be assigned to every new `ServiceLoader`                                |
 
 ```js
   const { AppLoader } = require("feathers-dataloader");
 
   const loader = new AppLoader({
     app,
-    cacheMap: new Map(),
-    serviceOptions: {
-      users: {
-        batchOptions: { ... }, // See BatchLoader
-        cacheOptions: { ... } // See CacheLoader
+    { maxBatchSize: 500 }
+    services: {
+      users: { maxBatchSize: 100 }
       }
     }
   });
@@ -155,19 +148,17 @@ Create a new app-loader. This is the most commonly used class.
 <!--- class ServiceLoader --------------------------------------------------------------------------->
 <h2 id="class-serviceloader">class ServiceLoader( [, options] )</h2>
 
-Create a new service-loader. This class lazily configures underlying `BatchLoader` and `CacheLoader` for a given service
+Create a new service-loader. This class lazily configures underlying `DataLoader` and `FindLoader` for a given service
 
 - **Arguments:**
   - `{Object} [ options ]`
     - `{Object} service`
-    - `{Object} batchOptions`
-    - `{Object} cacheOptions`
+    - `{Object} loaderOptions`
 
 | Argument        |    Type    |   Default  | Description                                      |
 | --------------- | :--------: | ---------- | ------------------------------------------------ |
 | `service`           | `Object`   |            | A service for this loader. For example, `app.service('users')`                                   |
-| `batchOptions`      |  `Object`  | {} | See `BatchLoader` |
-| `cacheOptions`           | `Object`   |      {}      | See `CacheLoader`                                 |
+| `loaderOptions`           | `Object`   |      {}      | See `DataLoader` and `FindLoader`                                 |
 
 
 ```js
@@ -175,54 +166,15 @@ Create a new service-loader. This class lazily configures underlying `BatchLoade
 
   const loader = new ServiceLoader({
     service: app.service('users'),
-    batchOptions: { ... }, // See BatchLoader
-    cacheOptions: { ... } // See CacheLoader
+    loaderOptions: { ... }, // See DataLoader and FindLoader
   });
 
 ```
 
-<!--- class BatchLoader --------------------------------------------------------------------------->
-<h2 id="class-batchloader">class BatchLoader( [, options] )</h2>
+<!--- class FindLoader --------------------------------------------------------------------------->
+<h2 id="class-findloader">class FindLoader( [, options] )</h2>
 
-Create a new batch-loader. This class lazily configures underlying `DataLoader` for this service
-
-- **Arguments:**
-  - `{Object} [ options ]`
-    - `{Object} service`
-    - `{Object} cacheMap`
-    - `{Function} cacheParamsFn`
-    - `{Object} loaderOptions`
-
-| Argument        |    Type    |   Default  | Description                                      |
-| --------------- | :--------: | ---------- | ------------------------------------------------ |
-| `service`           | `Object`   |            | A service for this loader. For example, `app.service('users')`                                   |
-| `cacheMap`      |  `Object`  | `new Map()`| Instance of Map (or an object with a similar API) to be used as cache. This caches different `DataLoaders` per id/params combination |
-| `cacheParamsFn`           | `Function`   |      defaultCacheParamsFn      | A function that returns JSON.strinify-able params of a query to be used in the `cacheMap`. This function should return a set of params that will be used to identify this unique query and removes any non-serializable items. The default function returns params with query, user, authentication, and paginate.
-| `loaderOptions`      |  `Object`  | {} | See `DataLoader` |
-
-
-```js
-  const { BatchLoader } = require("feathers-dataloader");
-
-  const loader = new BatchLoader({
-    service: app.service('users'),
-    cacheMap: new Map(),
-    cacheParamsFn: (params) => {
-      return {
-        paginate: false,
-        query: params.query,
-        user_id: params.user.id
-      }
-    }
-    loaderOptions: { ... } // See DataLoader
-  });
-
-```
-
-<!--- class CacheLoader --------------------------------------------------------------------------->
-<h2 id="class-cacheloader">class CacheLoader( [, options] )</h2>
-
-Create a new cache-loader. Create a loader that caches `get()` and `find()` queries based on their id/params
+Create a new FindLoader. Create a loader that caches `find()` queries based on their params. FindLoaders are used by ServiceLoaders when calling `find(null, params)` when there is no keyed relationship to batch.
 
 - **Arguments:**
   - `{Object} [ options ]`
@@ -240,9 +192,9 @@ Create a new cache-loader. Create a loader that caches `get()` and `find()` quer
 
 
 ```js
-  const { CacheLoader } = require("feathers-dataloader");
+  const { FindLoader } = require("feathers-dataloader");
 
-  const loader = new CacheLoader({
+  const loader = new FindLoader({
     service: app.service('users'),
     cacheMap: new Map(),
     cacheParamsFn: (params) => {
@@ -287,7 +239,7 @@ This library re-exports [Dataloader](https://www.npmjs.com/package/dataloader) f
   ```
 
 <!--- uniqueKeys ------------------------------------------------------------------------------->
-<h2 id="unique-keys">uniqueKeys(keys)</h2>
+<h2 id="uniqueKeys">uniqueKeys(keys)</h2>
 
 Returns the unique elements in an array.
 
@@ -307,10 +259,10 @@ Returns the unique elements in an array.
   );
   ```
 
-<!--- getResultsByKey ----------------------------------------------------------------------------->
-<h2 id="get-results-by-key">uniqueRecords(keys, result, idProp = 'id', defaultValue = null)</h2>
+<!--- uniqueResults ----------------------------------------------------------------------------->
+<h2 id="uniqueResults">uniqueResults(keys, result, idProp = 'id', defaultValue = null)</h2>
 
-Reorganizes the records from the service call into the result expected from the batch function.
+Reorganizes the records from the service call into the result expected from the batch function. Returns one result per key and is generally used for `get({ id: 1 })`
 
 - **Arguments:**
   - `{Array<String | Number>} keys`
@@ -329,8 +281,33 @@ Reorganizes the records from the service call into the result expected from the 
   ```js
   const usersLoader = new DataLoader(async (keys) => {
     const data = users.find({ query: { id: { $in: uniqueKeys(keys) } } });
-    return uniqueResults(keys, data, (user) => user.id, "", {
-      defaultElem: [],
-    });
+   return uniqueResults(keys, result, "id", "", null);
+  });
+  ```
+
+  <!--- uniqueResultsMulti ----------------------------------------------------------------------------->
+<h2 id="uniqueResultsMulti">uniqueResultsMulti(keys, result, idProp = 'id', defaultValue = null)</h2>
+
+Reorganizes the records from the service call into the result expected from the batch function. Returns multiple results per key and is generally used for `find({ id: 1 })`
+
+- **Arguments:**
+  - `{Array<String | Number>} keys`
+  - `{Object | Array<Object>} result`
+  - `{String} idProp`
+  - `{Any} defaultValue`
+
+| Argument           |             Type              | Default | Description                                                                                                   |
+| ------------------ | :---------------------------: | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `keys`             | `Array<` `String /` `Number>` |         | An array of `key` elements, which the value the batch loader function will use to find the records requested. |
+| `result`          |     `Array< ` `Object >`      |         | Any service method result.                                                  |
+| `idProp` |          `String`           |         | The "id" property of the records.                                                                                                    |
+| `defaultValue`             |           `Any`            |         | The default value returned when there is no result matching a key.                                                  |
+
+
+  ```js
+  const usersLoader = new DataLoader(async (keys) => {
+    const keys = uniqueKeys(keys);
+    const result = users.find({ query: { id: { $in: uniqueKeys(keys) } } });
+    return uniqueResultsMulti(keys, result, "id", "", null);
   });
   ```
