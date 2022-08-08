@@ -13,7 +13,7 @@ const loader = new AppLoader({ app });
 // Get one user with id 1
 const user = await loader.service('users').get({ id: 1 });
 
-// Get one user with username "Marshall"
+// Get one user with username "DaddyWarbucks"
 const user = await loader.service('users').get({ username: "DaddyWarbucks" });
 
 // Find multiple comments for user with userId 1
