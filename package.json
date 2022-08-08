@@ -34,17 +34,11 @@
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
     "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
-    "lint": "semistandard lib/*.js lib/**/*.js tests/*.js tests/**/*.js --fix",
+    "prettier": "npx prettier \"./(lib|tests)/**/*.js\" --write",
     "lint:types": "dtslint types/",
     "mocha": "mocha --recursive tests/",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --recursive tests/",
-    "test": "npm run lint && npm run lint:types && npm run coverage"
-  },
-  "semistandard": {
-    "sourceType": "module",
-    "env": [
-      "mocha"
-    ]
+    "test": "npm run prettier && npm run coverage"
   },
   "directories": {
     "lib": "lib"
