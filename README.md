@@ -84,9 +84,9 @@ const { resolveResult, resolve } = require('@feathersjs/schema');
 
 const postResultsResolver = resolve({
   properties: {
-    user: (value, post, context) => {
+    user: async (value, post, context) => {
       const { loader } = context.params;
-      return loader.service('users').get({ id: post.userId }, { loader });
+      return await loader.service('users').get({ id: post.userId }, { loader });
     }
   }
 });
