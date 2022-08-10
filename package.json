@@ -25,7 +25,7 @@
     "url": "https://github.com/feathersjs-ecosystem/batch-loader/issues"
   },
   "engines": {
-    "node": ">= 6.0.0"
+    "node": ">= 14"
   },
   "scripts": {
     "publish": "git push origin --tags && npm run changelog && git push origin",
@@ -34,32 +34,25 @@
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
     "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
-    "lint": "semistandard lib/*.js lib/**/*.js tests/*.js tests/**/*.js --fix",
+    "prettier": "npx prettier \"./(lib|tests)/**/*.js\" --write",
     "lint:types": "dtslint types/",
     "mocha": "mocha --recursive tests/",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --recursive tests/",
-    "test": "npm run lint && npm run lint:types && npm run coverage"
-  },
-  "semistandard": {
-    "sourceType": "module",
-    "env": [
-      "mocha"
-    ]
+    "test": "npm run prettier && npm run coverage"
   },
   "directories": {
     "lib": "lib"
   },
   "devDependencies": {
-    "@feathersjs/feathers": "^4.5.11",
-    "@types/feathersjs__feathers": "^3.1.7",
+    "@feathersjs/feathers": "^5.0.0-pre.28",
     "asyncro": "^3.0.0",
-    "chai": "^4.3.0",
-    "dtslint": "^4.0.6",
+    "chai": "^4.3.6",
+    "dtslint": "^4.2.1",
     "feathers-memory": "^4.1.0",
     "istanbul": "1.1.0-alpha.1",
-    "mocha": "^8.2.1",
-    "semistandard": "^16.0.0",
-    "typescript": "^4.1.4"
+    "mocha": "^10.0.0",
+    "semistandard": "^16.0.1",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "dataloader": "^2.1.0"

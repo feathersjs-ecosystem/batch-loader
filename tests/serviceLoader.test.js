@@ -25,11 +25,11 @@ describe('serviceLoader.test', () => {
     assert.deepEqual(serviceLoader._options.cacheParamsFn, testFunc);
   });
 
-  it('returns a new DataLoader', () => {
+  it('returns a new DataLoader', async () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts')
     });
-    serviceLoader.get({ id: 1 });
+    await serviceLoader.get({ id: 1 });
     assert.deepEqual(serviceLoader._cacheMap.size, 1);
   });
 
@@ -37,17 +37,17 @@ describe('serviceLoader.test', () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts')
     });
-    serviceLoader.get({ id: 1 });
-    serviceLoader.get({ id: 1 });
+    await serviceLoader.get({ id: 1 });
+    await serviceLoader.get({ id: 1 });
     assert.deepEqual(serviceLoader._cacheMap.size, 1);
   });
 
-  it('passes loader options', () => {
+  it('passes loader options', async () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts'),
       cacheKeyFn: testFunc
     });
-    serviceLoader.get({ id: 1 });
+    await serviceLoader.get({ id: 1 });
     const dataLoader = serviceLoader._cacheMap.get('["id","{}"]');
     assert.deepEqual(dataLoader._cacheKeyFn, testFunc);
   });
@@ -70,17 +70,17 @@ describe('serviceLoader.test', () => {
     assert.deepEqual(result, [defaultResult]);
   });
 
-  it('clears all', () => {
+  it('clears all', async () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts')
     });
-    serviceLoader.get({ id: 1 });
-    serviceLoader.get({ id: 1 }, { query: true });
-    serviceLoader.find({ id: 1 });
-    serviceLoader.find({ id: 1 }, { query: true });
+    await serviceLoader.get({ id: 1 });
+    await serviceLoader.get({ id: 1 }, { query: true });
+    await serviceLoader.find({ id: 1 });
+    await serviceLoader.find({ id: 1 }, { query: true });
     serviceLoader.clearAll();
     serviceLoader._cacheMap.forEach((loader) => {
       assert.deepEqual(loader._cacheMap.size, 0);
-    })
+    });
   });
 });

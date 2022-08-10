@@ -99,6 +99,15 @@ app.service('posts').hooks({
 });
 ```
 
+## Running Tests
+
+This package includes a `.mocharc.js` file, which means it supports VSCode debugging with [Test Explorer UI](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer) and [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter) installed.
+
+Once you've installed both plugins, you should see two ways to directly run tests.
+
+- The "test beaker" icon in VSCode's main nav, which will show you a tree of all Mocha tests.
+- A "run" and "debug" codelens link above every Mocha test.
+
 ## License
 
 Licensed under the [MIT license](LICENSE).

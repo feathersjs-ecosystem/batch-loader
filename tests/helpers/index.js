@@ -22,7 +22,7 @@ const commentsStore = {
 const usersStore = {
   101: { id: 101, name: 'John' },
   102: { id: 102, name: 'Marshall' },
-  102: { id: 103, name: 'Barbara' },
+  103: { id: 103, name: 'Barbara' },
   104: { id: 104, name: 'Aubree' }
 };
 
