@@ -58,7 +58,7 @@ app.hooks({
 });
 ```
 
-Now loaders are available everywhere! No need to instantiate or configure a `ServiceLoader` for each service ahead of time. `ServiceLoader` are lazily created and cached as they are called. It is also best practice to pass the loader onto susequent service/loader calls to maximize effeciency. See the [Common Patterns](./docs/common-patterns.md) section for more info.
+Now loaders are available everywhere! No need to instantiate or configure a `ServiceLoader` for each service ahead of time. `ServiceLoader` are lazily created and cached as they are called. It is also best practice to pass the loader onto susequent service/loader calls to maximize effeciency. See the [Guide](./docs/guide.md) section for more info.
 
 ```js
 const { resolveResult, resolve } = require('@feathersjs/schema');

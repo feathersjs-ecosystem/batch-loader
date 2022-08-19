@@ -143,6 +143,39 @@ user2.name === 'DaddyWarbucks' // false
 const user1 = await loader.service('users').load(1);
 const user2 = await loader.service('users').load(1);
 user1.name = 'DaddyWarbucks';
-user2.name === 'DaddyWarbucks' // true
+user2.name === 'DaddyWarbucks'; // true
+```
+
+
+## Params Caching
+
+Loaders use a stringified copy of the id and params used for each method call. This means that functions, classes, transactions, etc cannot be used in a cache key. By default, this library recursively traverses params and removes any functions from the params before stringifying them. But, you may need to create a custom strategy for your use case.
+
+```js
+
+const cacheParamsFn = params => {
+  return {
+    user: params.user,
+    query: params.query
+  }
+}
+
+// Use the global configuration.
+const loader = new AppLoader({ app, cacheParamsFn });
+
+// Configure each service independently.
+// This will override the global configuration.
+const loader = new AppLoader({
+  app
+  services: {
+    posts: {
+      cacheParamsFn
+    }
+  }
+});
+
+// Pass a cacheParamsFn on each method invocation.
+// This will override the service and global configuration.
+const result = loader.service('users').load(1, params, cacheParamsFn)
 ```
 

@@ -12,8 +12,7 @@ npm install feathers-dataloader --save
 
 Please refer to the documentation for more information.
 - [Documentation](./docs/index.md) - Definitions for the classes exported from this library
-- [Common Patterns](./docs/common-patterns.md) - Common patterns and best practices
-- [Guide](./docs/guide.md) - Detailed information about how loading, caching, batching works
+- [Guide](./docs/guide.md) - Common patterns, tips, and best practices
 
 ## TLDR
 
@@ -55,7 +54,7 @@ app.service('posts').find({ query: { id: { $in: [1, 2, 3] } } });
 ```js
 const { AppLoader } = require('feathers-dataloader');
 
-// See Common Patterns for more information about how to better pass
+// See Guide for more information about how to better pass
 // loaders from service to service.
 const initializeLoader = context => {
   if (context.params.loader) {
@@ -75,7 +74,7 @@ app.hooks({
 
 
 // Loaders are most commonly used in resolvers like @feathersjs/schema,
-// withResults, or fastJoin. See the Common Patterns section for more
+// withResults, or fastJoin. See the Guide section for more
 // information and common usecases.
 // Pass the loader to any and all service/loader calls. This maximizes
 // performance by allowing the loader to reuse its cache and
