@@ -63,10 +63,7 @@ describe('serviceLoader.test', () => {
     const serviceLoader = new ServiceLoader({
       service: app.service('posts')
     })
-    const defaultResult = await Promise.all([
-      app.service('posts').get(1),
-      app.service('posts').get(2),
-    ])
+    const defaultResult = await Promise.all([app.service('posts').get(1), app.service('posts').get(2)])
     const result = await serviceLoader.load([1, 2])
     assert.deepEqual(result, defaultResult)
   })

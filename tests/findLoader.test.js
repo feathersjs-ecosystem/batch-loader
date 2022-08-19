@@ -56,7 +56,7 @@ describe('findLoader.test', () => {
     const findLoader = new FindLoader({
       service: app.service('posts')
     })
-    let called = false;
+    let called = false
     await findLoader.load({ query: true }, (params) => {
       called = true
       return params
@@ -88,7 +88,7 @@ describe('findLoader.test', () => {
     const findLoader = new FindLoader({
       service: app.service('posts')
     })
-    const data = [{ data: true }];
+    const data = [{ data: true }]
     findLoader.prime({ query: true }, data)
     const result = await findLoader.load({ query: true })
     assert.deepEqual(data, result)

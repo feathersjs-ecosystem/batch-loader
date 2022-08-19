@@ -56,7 +56,7 @@ describe('getLoader.test', () => {
     const getLoader = new GetLoader({
       service: app.service('posts')
     })
-    let called = false;
+    let called = false
     await getLoader.load(1, {}, (params) => {
       called = true
       return params
@@ -90,7 +90,7 @@ describe('getLoader.test', () => {
     const getLoader = new GetLoader({
       service: app.service('posts')
     })
-    const data = { data: true };
+    const data = { data: true }
     getLoader.prime(1, undefined, data)
     const result = await getLoader.load(1)
     assert.deepEqual(data, result)

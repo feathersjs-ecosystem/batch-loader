@@ -17,10 +17,10 @@ describe('appLoader.test', () => {
     const serviceLoader = appLoader.service('posts')
     assert.isFunction(serviceLoader.get)
     assert.isFunction(serviceLoader.find)
-    assert.isFunction(serviceLoader.load);
-    assert.isFunction(serviceLoader.multi);
-    assert.isFunction(serviceLoader.key);
-    assert.isFunction(serviceLoader.exec);
+    assert.isFunction(serviceLoader.load)
+    assert.isFunction(serviceLoader.multi)
+    assert.isFunction(serviceLoader.key)
+    assert.isFunction(serviceLoader.exec)
   })
 
   it('returns a cached ServiceLoader', () => {
