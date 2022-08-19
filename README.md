@@ -37,9 +37,9 @@ Feathers Dataloader makes it easy and fast to write these kinds of queries. The 
 const loader = new AppLoader({ app: context.app });
 
 Promise.all([
-  loader.service('posts').get({ id: 1 }),
-  loader.service('posts').get({ id: 2 }),
-  loader.service('posts').get({ id: 3 })
+  loader.service('posts').load(1),
+  loader.service('posts').load(2),
+  loader.service('posts').load(3)
 ]);
 ```
 
@@ -86,7 +86,19 @@ const postResultsResolver = resolve({
   properties: {
     user: async (value, post, context) => {
       const { loader } = context.params;
-      return await loader.service('users').get({ id: post.userId }, { loader });
+      return await loader.service('users').load(post.userId, { loader });
+    },
+    category: async (value, post, context) => {
+      const { loader } = context.params;
+      return await loader.service('categories').key('name').load(post.categoryName, { loader });
+    },
+    tags: async (value, post, context) => {
+      const { loader } = context.params;
+      return await loader.service('tags').load(post.tagIds, { loader });
+    },
+    comments: async (value, post, context) => {
+      const { loader } = context.params;
+      return await loader.service('comments').multi('postId').load(post.id, { loader });
     }
   }
 });

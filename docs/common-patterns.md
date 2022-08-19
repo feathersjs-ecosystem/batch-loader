@@ -38,7 +38,7 @@ const postResultsResolver = resolve({
   properties: {
     user: (value, post, context) => {
       const { loader } = context.params;
-      return loader.service('users').get({ id: post.userId });
+      return loader.service('users').load(post.userId);
     }
   }
 });
@@ -60,7 +60,7 @@ const validateUserId = async (context) => {
   const { userId } = context.data;
 
   // Note we use the loader to lookup this user
-  const user = await loader.service('users').get({ id: userId });
+  const user = await loader.service('users').load(userId);
 
   if (!user) {
     throw new Error('Invalid userId');
@@ -75,7 +75,7 @@ const postResultsResolver = resolve({
       const { loader } = context.params;
       // We get user for free here! The loader is already cached
       // because we used it in the validateUserId before hook
-      return loader.service('users').get({ id: post.userId });
+      return loader.service('users').get(post.userId);
     }
   }
 });
@@ -94,7 +94,7 @@ app.service('posts').hooks({
 
 ## Clear loaders after mutation
 
-Even though loaders are generally created/destroyed with each request, its good practice to clear the cache after mutations. When using `AppLoader` and `ServiceLoader`, there is only one method `clearAll()` to clear the loader caches. Because of the lazy config when using these classes, its difficult for the developer to know all of the potential ids/params combos that may be cached. Instead, the `clearAll()` method dumps the whole cache. If any subsequent calls are made to the loader for this service it will return new results.
+Even though loaders are generally created/destroyed with each request, its good practice to clear the cache after mutations. When using `AppLoader` and `ServiceLoader`, there is only one method `clearAll()` to clear the loader caches. Because of the lazy config when using these classes, its difficult for the developer to know all of the potential method/ids/params combos that may be cached. Instead, the `clearAll()` method dumps the whole cache. If any subsequent calls are made to the loader for this service it will return new results.
 
 ```js
 const clearLoaderCache = async (context) => {
@@ -116,7 +116,7 @@ But, you can get access to the underlying caches as well. You should use this wi
 const clearLoaderCache = async (context) => {
   const loader = context.params.loader.service('users');
   loader._cacheMap.forEach((loader, loaderKey) => {
-    // Write code that will break your app.
+    // Write code that will break your app...
   });
   return context;
 };
@@ -126,5 +126,23 @@ app.service('posts').hooks({
     all: [clearLoaderCache]
   }
 });
+```
+
+## Don't mutate loader results
+
+Loaders returned cached results each time you call a method. This is dissimilar to standard `get()` and `find()` methods in Featers where we expect each set of results to be unique each time a method is called. Take care not to mutate loader results as you work with them.
+
+```js
+// For get/find requests, each result is unique
+const user1 = await app.service('users').get(1);
+const user2 = await app.service('users').get(1);
+user1.name = 'DaddyWarbucks';
+user2.name === 'DaddyWarbucks' // false
+
+// For each method of a loader, results are cached and shared
+const user1 = await loader.service('users').load(1);
+const user2 = await loader.service('users').load(1);
+user1.name = 'DaddyWarbucks';
+user2.name === 'DaddyWarbucks' // true
 ```
 

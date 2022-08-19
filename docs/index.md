@@ -10,36 +10,27 @@ const { AppLoader } = require('feathers-dataloader');
 
 const loader = new AppLoader({ app });
 
-// Get one user with id 1
-const user = await loader.service('users').get({ id: 1 });
+// Load one user with id 1
+const user = await loader.service('users').load(1, params);
 
-// Get one user with username "DaddyWarbucks"
-const user = await loader.service('users').get({ username: "DaddyWarbucks" });
+// Load one user with username "DaddyWarbucks"
+const user = await loader.service('users').key('username').load('DaddyWarbucks', params);
 
-// Find multiple comments for user with userId 1
-const comments = await loader.service('comments').find({ userId: 1 });
+// Load one user per userId in the array
+const users = loader.service('users').load([1, 2, 3], params);
 
-// Find multiple comments for user with username DaddyWarbucks
-const comments = await loader.service('comments').find({ username: "DaddyWarbucks" });
+// Load multiple comments for user with userId 1
+const comments = await loader.service('comments').multi('userId').load(1, params);
 
-// Use params
-const user = await loader.service('users').get(
-  { id: 1 },
-  { query: { status: 'active' } }
-);
+// Load multiple comments for each userId in the array
+const comments = await loader.service('comments').multi('userId').load([1, 2, 3], params);
 
-const users = await loader.service('users').find(
-  { id: 1 },
-  { query: { status: 'active' } }
-);
 
-// You can also call find() with a null id when there is no keyed relationship.
-// This is helpful for finds that are not necessarily "relationships" but
-// can still benefit from caching the results.
-const users users = await loader.service('users').find(
-  null,
-  { query: { status: 'active' } }
-);
+// You can also call get() and find() methods.
+// These are helpful for gets/finds that are not necessarily a
+// "relationships" but can still benefit from caching the results.
+const user = await loader.service('users').get(1);
+const users = await loader.service('users').find({ query: { status: 'active' } });
 ```
 
 Loaders are most commonly used when resolving data onto results. This is generally done in hooks like `@feathers-/schema`, `withResult`, or `fastJoin`. Setup a loader in before hooks to make it available to these other hooks.
@@ -76,7 +67,7 @@ const postResultsResolver = resolve({
   properties: {
     user: (value, post, context) => {
       const { loader } = context.params;
-      return loader.service('users').get({ id: post.userId }, { loader });
+      return loader.service('users').load(post.userId, { loader });
     }
   }
 });
@@ -95,8 +86,11 @@ The `AppLoader` lazily configures a new `ServiceLoader` per service as you use t
 const { ServiceLoader } = require('feathers-dataloader');
 
 const serviceLoader = new ServiceLoader({ service: app.service('users') });
-const user = await serviceLoader.get({ id: 1 });
-const users = await serviceLoader.find({ id: 1 });
+const user = await serviceLoader.load(1, params);
+const user = await serviceLoader.get(1, params);
+const users = await serviceLoader.find(params);
+
+serviceLoader.clearAll();
 ```
 
 The `ServiceLoader` configures a `DataLoader` with some basic options. The `DataLoader` is a powerful batching and caching class that dramatically imporoves performance. It is based on the [facebook/dataloader](https://github.com/facebook/dataloader). If you are interested in how this works in depth, check out this [GREAT VIDEO](https://www.youtube.com/watch?v=OQTnXNCDywA) by its original author. You should also checkout the [GUIDE](./guide.md) for a comprehensive explanation of how the `DataLoader` works.
@@ -134,15 +128,27 @@ Create a new app-loader. This is the most commonly used class.
 ```js
   const { AppLoader } = require("feathers-dataloader");
 
-  const loader = new AppLoader({
+  const appLoader = new AppLoader({
     app,
     { maxBatchSize: 500 }
     services: {
       users: { maxBatchSize: 100 }
-      }
     }
   });
 
+  const loader = appLoader.service('users');
+
+  const user = await loader.load(1, params);
+  const user = await loader.key('username').load('DaddyWarbucks', params);
+  const users = await loader.load([1, 2, 3], params);
+
+  const authorUsers = await loader.multi('role').load('author', params);
+  const usersByRole = await loader.multi('role').load(['author', 'reader'], params);
+
+  const user = await loader.get(1, params);
+  const users = await loader.find(params);
+
+  loader.clearAll()
 ```
 
 <!--- class ServiceLoader --------------------------------------------------------------------------->
@@ -153,12 +159,12 @@ Create a new service-loader. This class lazily configures underlying `DataLoader
 - **Arguments:**
   - `{Object} [ options ]`
     - `{Object} service`
-    - `{Object} loaderOptions`
+    - ...loaderOptions
 
 | Argument        |    Type    |   Default  | Description                                      |
 | --------------- | :--------: | ---------- | ------------------------------------------------ |
 | `service`           | `Object`   |            | A service for this loader. For example, `app.service('users')`                                   |
-| `loaderOptions`           | `Object`   |      {}      | See `DataLoader` and `FindLoader`                                 |
+| `loaderOptions`           | `Object`   |      {}      | See `DataLoader`, `FindLoader` and `GetLoader`                               |
 
 
 ```js
@@ -166,28 +172,39 @@ Create a new service-loader. This class lazily configures underlying `DataLoader
 
   const loader = new ServiceLoader({
     service: app.service('users'),
-    loaderOptions: { ... }, // See DataLoader and FindLoader
+    ...loaderOptions // See DataLoader and FindLoader
   });
 
+  const user = await loader.load(1, params);
+  const user = await loader.key('username').load('DaddyWarbucks', params);
+  const users = await loader.load([1, 2, 3], params);
+
+  const authorUsers = await loader.multi('role').load('author', params);
+  const usersByRole = await loader.multi('role').load(['author', 'reader'], params);
+
+  const user = await loader.get(1, params);
+  const users = await loader.find(params);
+
+  loader.clearAll()
 ```
 
 <!--- class FindLoader --------------------------------------------------------------------------->
 <h2 id="class-findloader">class FindLoader( [, options] )</h2>
 
-Create a new FindLoader. Create a loader that caches `find()` queries based on their params. FindLoaders are used by ServiceLoaders when calling `find(null, params)` when there is no keyed relationship to batch.
+Create a new FindLoader. Create a loader that caches `find()` queries based on their params. FindLoaders are used by ServiceLoaders when calling `find(params)`.
 
 - **Arguments:**
   - `{Object} [ options ]`
     - `{Object} service`
     - `{Object} cacheMap`
     - `{Function} cacheParamsFn`
-    - `{cacheKeyFn} cacheKeyFn`
+    - `{Function} cacheKeyFn`
 
 | Argument        |    Type    |   Default  | Description                                      |
 | --------------- | :--------: | ---------- | ------------------------------------------------ |
 | `service`           | `Object`   |            | A service for this loader. For example, `app.service('users')`                                   |
-| `cacheMap`      |  `Object`  | `new Map()`| Instance of Map (or an object with a similar API) to be used as cache. This caches the results of `get()` and `find()` methods based on their ids/params. |
-| `cacheParamsFn`           | `Function`   |      defaultCacheParamsFn      | A function that returns JSON.strinify-able params of a query to be used in the `cacheMap`. This function should return a set of params that will be used to identify this unique query and removes any non-serializable items. The default function returns params with query, user, authentication, and paginate.
+| `cacheMap`      |  `Object`  | `new Map()`| Instance of Map (or an object with a similar API) to be used as cache. |
+| `cacheParamsFn`           | `Function`   |      defaultCacheParamsFn      | A function that returns JSON.strinify-able params of a query to be used in the `cacheMap`. This function should return a set of params that will be used to identify this unique query and removes any non-serializable items. The default function returns traverses params and removes any functions.
 | `cacheKeyFn`      |  `Function`  | defaultCacheKeyFn | Normalize keys. `(key) => key && key.toString ? key.toString() : String(key)` |
 
 
@@ -207,6 +224,50 @@ Create a new FindLoader. Create a loader that caches `find()` queries based on t
     cacheKeyFn: (key) => key
   });
 
+ const users = await loader.load(params);
+ loader.clear(params);
+ loader.clearAll();
+```
+
+<!--- class GetLoader --------------------------------------------------------------------------->
+<h2 id="class-getloader">class GetLoader( [, options] )</h2>
+
+Create a new GetLoader. Create a loader that caches `get()` requests based on their id/params. GetLoaders are used by ServiceLoaders when calling `get(id, params)`.
+
+- **Arguments:**
+  - `{Object} [ options ]`
+    - `{Object} service`
+    - `{Object} cacheMap`
+    - `{Function} cacheParamsFn`
+    - `{Function} cacheKeyFn`
+
+| Argument        |    Type    |   Default  | Description                                      |
+| --------------- | :--------: | ---------- | ------------------------------------------------ |
+| `service`           | `Object`   |            | A service for this loader. For example, `app.service('users')`                                   |
+| `cacheMap`      |  `Object`  | `new Map()`| Instance of Map (or an object with a similar API) to be used as cache. |
+| `cacheParamsFn`           | `Function`   |      defaultCacheParamsFn      | A function that returns JSON.strinify-able params of a query to be used in the `cacheMap`. This function should return a set of params that will be used to identify this unique query and removes any non-serializable items. The default function returns traverses params and removes any functions.
+| `cacheKeyFn`      |  `Function`  | defaultCacheKeyFn | Normalize keys. `(key) => key && key.toString ? key.toString() : String(key)` |
+
+
+```js
+  const { GetLoader } = require("feathers-dataloader");
+
+  const loader = new GetLoader({
+    service: app.service('users'),
+    cacheMap: new Map(),
+    cacheParamsFn: (params) => {
+      return {
+        paginate: false,
+        query: params.query,
+        user_id: params.user.id
+      }
+    }
+    cacheKeyFn: (key) => key
+  });
+
+  const user = await loader.load(1, params);
+  loader.clear(id, params);
+  loader.clearAll();
 ```
 
 
@@ -274,14 +335,14 @@ Reorganizes the records from the service call into the result expected from the 
 | ------------------ | :---------------------------: | ------- | ------------------------------------------------------------------------------------------------------------- |
 | `keys`             | `Array<` `String /` `Number>` |         | An array of `key` elements, which the value the batch loader function will use to find the records requested. |
 | `result`          |     `Array< ` `Object >`      |         | Any service method result.                                                  |
-| `idProp` |          `String`           |         | The "id" property of the records.                                                                                                    |
-| `defaultValue`             |           `Any`            |         | The default value returned when there is no result matching a key.                                                  |
+| `idProp` |          `String`           |     'id'    | The "id" property of the records.                                                                                                    |
+| `defaultValue`             |           `Any`            |     null    | The default value returned when there is no result matching a key.                                                  |
 
 
   ```js
   const usersLoader = new DataLoader(async (keys) => {
     const data = users.find({ query: { id: { $in: uniqueKeys(keys) } } });
-   return uniqueResults(keys, result, "id", "", null);
+   return uniqueResults(keys, result, "id", null);
   });
   ```
 
@@ -300,14 +361,14 @@ Reorganizes the records from the service call into the result expected from the 
 | ------------------ | :---------------------------: | ------- | ------------------------------------------------------------------------------------------------------------- |
 | `keys`             | `Array<` `String /` `Number>` |         | An array of `key` elements, which the value the batch loader function will use to find the records requested. |
 | `result`          |     `Array< ` `Object >`      |         | Any service method result.                                                  |
-| `idProp` |          `String`           |         | The "id" property of the records.                                                                                                    |
-| `defaultValue`             |           `Any`            |         | The default value returned when there is no result matching a key.                                                  |
+| `idProp` |          `String`           |     'id'    | The "id" property of the records.                                                                                                    |
+| `defaultValue`             |           `Any`            |     null    | The default value returned when there is no result matching a key.                                                  |
 
 
   ```js
   const usersLoader = new DataLoader(async (keys) => {
     const keys = uniqueKeys(keys);
     const result = users.find({ query: { id: { $in: uniqueKeys(keys) } } });
-    return uniqueResultsMulti(keys, result, "id", "", null);
+    return uniqueResultsMulti(keys, result, "id", null);
   });
   ```
