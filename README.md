@@ -2,6 +2,11 @@
 
 > Reduce requests to backend services by batching calls and caching records.
 
+# DEPRECATED
+Please see the new [feathers-dataloader](https://github.com/feathersjs-ecosystem/dataloader) for the latest versions
+
+
+
 ## Installation
 
 ```
